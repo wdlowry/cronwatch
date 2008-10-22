@@ -1,0 +1,10 @@
+#labels Phase-Requirements
+These are some basic requirements I have for the project:
+  * Design and implement using test-driven development. This will ensure that *all* code is associated with test code.
+  * Maintain minimal requirements on the client side. Basically, I don't want the sysadmin to have to install something other than cronwatch on the client systems. Thus, the code should only use widely available UNIX software
+    * bash (still not sure on this one)
+    * standard awk
+    * standard grep
+    * ssh
+    * other UNIX commands
+  * Test on a variety of systems: AIX, HP-UX, Solaris, Linux, *BSD
