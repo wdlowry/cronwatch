@@ -1,0 +1,30 @@
+#summary Design Goals for initial version and future versions of cronwatch
+
+= Crontab Implementation =
+The crontab implementation should be as simple as possible. Ideally, if the PATH variable in cron is already set up, then the only change to crontab should be a insertion of the cronwatch script. 
+
+For example:
+{{{
+5 * * * * root /some/script --with --arguments
+}}}
+
+becomes
+
+{{{
+5 * * * * root cronwatch /some/script --with --arguments
+}}}
+
+If there are multiple instances of the same script or if special configuration is needed, the admin will need to add a configuration "token" to specify which configuration file to use.
+
+For example:
+{{{
+5 * * * * root /some/script first-instance
+9 * * * * root /some/script second-instance
+}}}
+
+becomes
+
+{{{
+5 * * * * root cronwatch -c /some/script first first-instance
+9 * * * * root cronwatch -c /some/script second second-instance
+}}}
