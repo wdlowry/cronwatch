@@ -1,0 +1,25 @@
+#summary Requirements for the cronwatch wrapper script
+#labels Phase-Requirements
+
+The wrapper script should run on any POSIX platform and be a drop-in wrapper for existing
+cronjobs. The only exception to this rule is when input or output redirection is happening on the crontab command line.
+
+
+= Basic Requirements =
+  * Calls script with all arguments
+    * Needs to handle arguments in with spaces (i.e. "long argument")
+  * Captures all output (stderr and stdout) and exit code
+  * Accepts a configuration file for the processor
+  * Stores output and configuration file in a queue directory for the collector
+  ** Must lock the files until the cron script is finished running
+
+= Environment Requirements =
+  * Must run in straight bourne shell (maybe POSIX?)
+
+= Notes =
+ * We need to handle parameters like this: /scripts/script.sh "long argument" This will probably have to be handled with something like "$@", but that may not be compatible.
+  * I can't think of an easy way to separate stdout and stderr using only shell script without messing up the order. Thus, they will just get lumped together and will have to be distinguished using regular expressions.
+  * The maintainer of the cron script may not be the same as the maintainer of the collector or the processor, so he needs to be able to provide a config file with stuff like the e-mail address that reports are mailed to, etc.
+
+= Future Requirements =
+  * Accepts a timeout for the cron script
