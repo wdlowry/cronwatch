@@ -1,2 +1,7 @@
+#summary Requirements for the different components of the project
 #labels Phase-Requirements
-RequirementsCrontab
+
+ * ProjectRequirements
+ * WrapperRequirements
+ * CollectorRequirements
+ * ProcessorRequirements
