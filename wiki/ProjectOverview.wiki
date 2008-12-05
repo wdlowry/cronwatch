@@ -7,3 +7,5 @@ At my company we have multiple departments that write jobs and schedule them on 
 We needed a system that would grab the output from the cronjobs, process it, and send important information on to the responsible groups. The system also should handle central reporting.
 
 Some scheduling packages handle all this kind of stuff. However, they tend to be expensive and cron really does the trick when it comes to scheduling. It just doesn't handle reporting very well.
+
+= Components =
