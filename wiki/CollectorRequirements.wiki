@@ -1,0 +1,22 @@
+#summary Requirements for the cronwatch log collector
+#labels Phase-Requirements,Collector
+
+The collector script should run on any POSIX platform and use standard file transfer tools to upload the files (e.g. scp, rsync, ftp).
+
+= Basic Requirements =
+ * Uploads files in queue directory to central cronwatch server
+   * Locks the queue directory and/or files
+   * Alerts on upload error
+ * Supports multiple file upload methods
+   * rsync
+   * scp/sftp
+   * ftp
+   * http (webdav?)
+   * socket (nc) (?)
+
+= Environment Requirements =
+  * Must run in straight bourne shell (maybe POSIX?)
+
+= Notes =
+
+= Future Requirements =
