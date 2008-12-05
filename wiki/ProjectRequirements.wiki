@@ -1,0 +1,7 @@
+#summary Basic requirements for the project
+#labels Phase-Requirements
+
+= Development =
+ * Design and implement using test-driven development. This will ensure that *all* code is associated with test code.
+ * Maintain minimal requirements on the client side. Basically, I don't want the sysadmin to have to install something other than cronwatch on the client systems. Thus, the code should only use widely available UNIX software
+ * Test on a variety of systems: AIX, HP-UX, Solaris, Linux, BSDs
