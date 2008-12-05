@@ -1,5 +1,5 @@
 #summary Requirements for the cronwatch wrapper script
-#labels Phase-Requirements
+#labels Phase-Requirements,Wrapper
 
 The wrapper script should run on any POSIX platform and be a drop-in wrapper for existing
 cronjobs. The only exception to this rule is when input or output redirection is happening on the crontab command line.
