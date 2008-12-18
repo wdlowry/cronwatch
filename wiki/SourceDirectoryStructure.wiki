@@ -1,0 +1,11 @@
+#summary Directory structure of the source code
+#labels Phase-Implementation
+
+=Directory Structure=
+ * `Makefile`
+ * `README`
+ * `wrapper` - cronwatch wrapper script files
+ * `collector`
+ * `processor`
+ * `tools` - 3rd party tools for building the project
+  *
