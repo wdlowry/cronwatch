@@ -11,5 +11,5 @@ Some scheduling packages handle all this kind of stuff. However, they tend to be
 =Components=
 
 =Build Tools=
-* Subversion
-* Make
+ * Subversion
+ * Make
