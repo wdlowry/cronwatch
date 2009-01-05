@@ -13,7 +13,7 @@
   * Default: none
 
 = Queue Directory Layout =
-Each time a cron job runs, cronwatch will create a unique directory QUEUE_DIR/ID, where ID is generated using one of the methods listed below. 
+Each time a cron job runs, cronwatch will create a unique directory QUEUE_DIR/ID, where ID is generated using the date (20010113083749) and PID.
 
  * QUEUE_DIR
   * ID.lock - the lock file to let the collector know that this job is still running; also contains the PID of the cronwatch wrapper script
@@ -22,20 +22,6 @@ Each time a cron job runs, cronwatch will create a unique directory QUEUE_DIR/ID
    * config - the config file, if one was specified
    * status - data about the run including start time, stop time, return code, full path, arguments
 
-
-= Generating the Unique Directory =
-The id must not contain a "." character since this character is used for the lock file.
-
-Here are a list of possible methods:
-
- * urandom + sum
-  * dd if=/dev/urandom bs=1024 count=2 2> /dev/null | sum | cut -f 1 -d ' '
-  * Add in pid and $1?
- * md5sum
-  * MD5sum of PID and $1?
- * date
-  * PID + date?
-  * This would always be unique and it's the quickest, so I think we'll want to use this one.
 
 = Process =
  # Read and handle command line arguments
