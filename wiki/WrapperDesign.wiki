@@ -11,3 +11,17 @@
  * -c
   * Specifies the configuration file for the processor
   * Default: none
+
+= Queue Directory Layout =
+Each time a cron job runs, cronwatch will create a unique directory QUEUE_DIR/ID, where ID is generated using one of the methods listed below. 
+
+ * QUEUE_DIR
+  * ID.lock - the lock file to let the collector know that this job is still running; also contains the PID of the cronwatch wrapper script
+  * ID/
+   * output - contains the output the actual job
+   * config - the config file, if one was specified
+   * status - data about the run including start time, stop time, return code, full path, arguments
+
+
+= Generating the Unique Directory =
+The id must not contain a "." character since this character is used for the lock file.
