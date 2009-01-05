@@ -6,16 +6,17 @@ cronjobs. The only exception to this rule is when input or output redirection is
 
 
 = Basic Requirements =
+ * Needs to accept these command line parameters
+  * -q Queue directory
+  * -u Unique identifier for the job
+  * -c Configuration file for the processor
  * Calls script with all arguments
   * Needs to handle arguments in with spaces (i.e. "long argument")
  * Captures all output (stderr and stdout) and exit code
  * Accepts an optional configuration file for the processor
  * Stores output and configuration file in a queue directory for the collector
   * Must lock the files until the cron script is finished running
-  * Queue 
- * Accepts an optional unique identifier for the job
-  * Otherwise uses the allowed characters from the basename of the script
-  * Only alnum characters allowed
+  * Must generate a unique queue directory name
 
 = Environment Requirements =
   * Must run in straight bourne shell (maybe POSIX?)
