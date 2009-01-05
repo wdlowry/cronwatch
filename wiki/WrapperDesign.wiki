@@ -35,3 +35,17 @@ Here are a list of possible methods:
   * MD5sum of PID and $1?
  * date
   * PID + date?
+  * This would always be unique and it's the quickest, so I think we'll want to use this one.
+
+= Process =
+ # Read and handle command line arguments
+ # Determine unique id (and make sure it doesn't exist)
+ # Set up the signal handler for quit
+  * Write the stop time to the status file
+  * Remove the lock file
+ # Create the lock file
+ # Create the queue directory
+ # Copy the config file
+ # Create the status file
+ # Run command and capture output (use a clean environment)
+ # Exit
