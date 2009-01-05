@@ -25,3 +25,13 @@ Each time a cron job runs, cronwatch will create a unique directory QUEUE_DIR/ID
 
 = Generating the Unique Directory =
 The id must not contain a "." character since this character is used for the lock file.
+
+Here are a list of possible methods:
+
+ * urandom + sum
+  * dd if=/dev/urandom bs=1024 count=2 2> /dev/null | sum | cut -f 1 -d ' '
+  * Add in pid and $1?
+ * md5sum
+  * MD5sum of PID and $1?
+ * date
+  * PID + date?
