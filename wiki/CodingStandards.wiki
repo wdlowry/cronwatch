@@ -1,0 +1,20 @@
+#summary Coding standards for the project
+#labels Phase-Implementation
+
+= Introduction = 
+
+
+= Standard Shell Header =
+{{{
+#!/bin/sh
+# $Id$
+# vim:ft=sh:sw=4:sta:et
+# NAME - DESCRIPTION
+#
+# Written by NAME (OPTIONAL: E-MAIL)
+# Released under the GPL version 2
+#
+
+}}}
+
+= Standard Python Header =
