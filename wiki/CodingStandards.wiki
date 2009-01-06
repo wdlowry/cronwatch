@@ -9,6 +9,7 @@
 #!/bin/sh
 # $Id$
 # vim:ft=sh:sw=4:sta:et
+
 # NAME - DESCRIPTION
 #
 # Written by NAME (OPTIONAL: E-MAIL)
