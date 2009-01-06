@@ -28,17 +28,47 @@ if [ -z "$1" ] ; then
     exit 1
 fi
 
+# Set option variables
+CONFIGFILE=''
+QUEUEDIR='%QUEUEDIR%'
+
+
 # Handle the command line options
-while getopts c:hq:u: OPT; do
+while getopts c:hq:u:z: OPT; do
     case "$OPT" in
-        c) ;;
-        h) ;;
-        q) ;;
+        c)
+            CONFIGFILE="$OPTARG"
+            ;;
+        h)
+            usage
+            exit
+            ;;
+        q)
+            QUEUEDIR="$OPTARG"
+            ;;
         u) ;;
+        z)
+            # This is for the test code
+            DEBUG_FLAG="$OPTARG"
+            ;;
         ?) ;;
     esac
 done
 
-shift $(($OPIND - 1))
+shift "$((OPTIND - 1))"
 
-
+# Debugging code for test cases.
+if [ -n "$DEBUG_FLAG" ] ; then
+    case "$DEBUG_FLAG" in
+        'CONFIGFILE')
+            echo "$CONFIGFILE"
+            ;;
+        'QUEUEDIR')
+            echo "$QUEUEDIR"
+            ;;
+        'UNIQUEID')
+            echo "$UNIQUEID"
+            ;;
+    esac
+    exit
+fi
