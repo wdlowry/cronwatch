@@ -10,7 +10,7 @@
 # $Id$
 # vim:ft=sh:sw=4:sta:et
 #
-# NAME - DESCRIPTION
+# SCRIPTNAME - DESCRIPTION
 #
 # Written by NAME (OPTIONAL: E-MAIL)
 # Released under the GPL version 2
