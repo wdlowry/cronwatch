@@ -31,7 +31,7 @@ fi
 # Set option variables
 CONFIGFILE=''
 QUEUEDIR='%QUEUEDIR%'
-
+UNIQUEID=''
 
 # Handle the command line options
 while getopts c:hq:u:z: OPT; do
@@ -46,7 +46,9 @@ while getopts c:hq:u:z: OPT; do
         q)
             QUEUEDIR="$OPTARG"
             ;;
-        u) ;;
+        u)
+            UNIQUEID="$OPTARG"
+            ;;
         z)
             # This is for the test code
             DEBUG_FLAG="$OPTARG"

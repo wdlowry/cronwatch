@@ -46,4 +46,13 @@ test_opt_queue () {
     assertEquals 'queuedir' "$O"
 }
 
+# -u should set the unique id
+test_opt_uid () {
+    O=`./wrapper -z UNIQUEID /dev/null`
+    assertEquals '' "$O"
+
+    O=`./wrapper -u uniqueid -z UNIQUEID /dev/null`
+    assertEquals 'uniqueid' "$O"
+}
+
 . ../tools/shunit2
