@@ -136,6 +136,15 @@ if [ ! "$?" = '0' ] ; then
     error "could not create queue directory $QUEUEDIR/$UNIQUEDIR"
 fi
 
+# Copy the config file
+if [ -n "$CONFIGFILE" ] ; then
+    cp "$CONFIGFILE" "$QUEUEDIR/$UNIQUEDIR/config"
+
+    if [ ! "$?" = '0' ] ; then
+        error "could not copy config file $CONFIGFILE"
+    fi
+fi
+
 PROG="$1"
 shift 1
 

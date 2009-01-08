@@ -79,6 +79,9 @@ EOF
 echo \$VAR
 EOF
     chmod +x testtmpro/env
+    
+    # Create a config file
+    echo 'config' > testtmpro/config
 }
 
 oneTimeTearDown() {
@@ -292,6 +295,19 @@ test_env () {
 
     assertEquals '' "`cat $QD/output`"
 
+}
+
+# Should copy config file
+test_configfile () {
+    O=`$W -c testtmpro/config testtmpro/simple 2>&1`
+    R="$?"
+    
+    assertEquals "" "$O"
+    assertEquals "0" "$R"
+
+    QD=`getqd`
+
+    assertEquals 'config' "`cat $QD/config`"
 }
 
 . ../tools/shunit2
