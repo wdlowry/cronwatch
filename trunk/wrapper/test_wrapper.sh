@@ -42,6 +42,10 @@ oneTimeSetUp() {
     # Create an "unwriteable" file (this won't work correctly for root)
     mkdir testtmpro/unwriteable
     chmod 555 testtmpro/unwriteable
+
+    # Create an "unrunable" file (this will actually work for root)
+    touch testtmpro/unrunable
+    chmod 644 testtmpro/unrunable
 }
 
 oneTimeTearDown() {
@@ -51,6 +55,8 @@ oneTimeTearDown() {
 setUp() {
     mkdir testtmp
     mkdir -p testtmp/q
+
+    W='./wrapper.sh -q testtmp/q'
 }
 
 tearDown() {
@@ -63,8 +69,8 @@ tearDown() {
 
 # Should fail with an error without any command line options
 test_fail_noargs () {
-    O=`./wrapper 2>&1 | head -1`
-    ./wrapper > /dev/null 2>&1
+    O=`./wrapper.sh 2>&1 | head -1`
+    ./wrapper.sh > /dev/null 2>&1
     R="$?"
 
     assertEquals 'ERROR: missing argument' "$O"
@@ -73,44 +79,44 @@ test_fail_noargs () {
 
 # -c should set the configuration file
 test_opt_config () {
-    O=`./wrapper -z CONFIGFILE /dev/null`
+    O=`./wrapper.sh -z CONFIGFILE /dev/null`
     assertEquals '' "$O"
 
-    O=`./wrapper -c configfile -z CONFIGFILE /dev/null`
+    O=`./wrapper.sh -c configfile -z CONFIGFILE /dev/null`
     assertEquals 'configfile' "$O"
 }
 
 # -h should display the usage and quit
 test_opt_help () {
-    O=`./wrapper -h 2>&1 | head -1`
-    ./wrapper -h > /dev/null 2>&1
+    O=`./wrapper.sh -h 2>&1 | head -1`
+    ./wrapper.sh -h > /dev/null 2>&1
     R="$?"
     
-    assertEquals 'usage: ./wrapper [options] executable [arguments]' "$O"
+    assertEquals 'usage: ./wrapper.sh [options] executable [arguments]' "$O"
     assertEquals "0" "$R"
 }
 
 # -q should set the queue directory
 test_opt_queue () {
-    O=`./wrapper -z QUEUEDIR /dev/null`
-    assertEquals '/var/lib/cronwatch/wrapper' "$O"
+    O=`./wrapper.sh -z QUEUEDIR /dev/null`
+    assertEquals '%QUEUEDIR%' "$O"
 
-    O=`./wrapper -q queuedir -z QUEUEDIR /dev/null`
+    O=`./wrapper.sh -q queuedir -z QUEUEDIR /dev/null`
     assertEquals 'queuedir' "$O"
 }
 
 # -u should set the unique id
 test_opt_uid () {
-    O=`./wrapper -z UNIQUEID /dev/null`
+    O=`./wrapper.sh -z UNIQUEID /dev/null`
     assertEquals '' "$O"
 
-    O=`./wrapper -u uniqueid -z UNIQUEID /dev/null`
+    O=`./wrapper.sh -u uniqueid -z UNIQUEID /dev/null`
     assertEquals 'uniqueid' "$O"
 }
 
 # Should flag an error if the config file doesn't exist or isn't readable
 test_configfile_readable () {
-    O=`./wrapper -c doesntexist /dev/null 2>&1`
+    O=`./wrapper.sh -c doesntexist /dev/null 2>&1`
     R="$?"
 
     assertEquals 'ERROR: could not read config file doesntexist' "$O"
@@ -121,7 +127,7 @@ test_configfile_readable () {
     assertTrue 'testtmpro/unreadable does not exist' \
         '[ -e testtmpro/unreadable ]'
     
-    O=`./wrapper -c testtmpro/unreadable /dev/null 2>&1`
+    O=`./wrapper.sh -c testtmpro/unreadable /dev/null 2>&1`
     R="$?"
 
     assertEquals 'ERROR: could not read config file testtmpro/unreadable' "$O"
@@ -131,7 +137,7 @@ test_configfile_readable () {
 # TODO add test to check to make sure config file gets copied
 
 test_queuedir_writeable () {
-    O=`./wrapper -q doesntexist /dev/null 2>&1`
+    O=`./wrapper.sh -q doesntexist /dev/null 2>&1`
     R="$?"
     
     assertEquals 'ERROR: could not write to queue directory doesntexist' "$O"
@@ -142,19 +148,33 @@ test_queuedir_writeable () {
     assertTrue 'testtmpro/unwriteable does not exist' \
         '[ -e testtmpro/unwriteable ]'
     
-    O=`./wrapper -q testtmpro/unwriteable /dev/null 2>&1`
+    O=`./wrapper.sh -q testtmpro/unwriteable /dev/null 2>&1`
     R="$?"
 
     assertEquals 'ERROR: could not write to queue directory testtmpro/unwriteable' "$O"
     assertEquals "1" "$R"
 }
 
+test_missing_executable () {
+    O=`$W doesntexist 2>&1`
+    R="$?"
+
+    assertEquals "ERROR: could not run doesntexist" "$O"
+    assertEquals "1" "$R"
+    
+    assertTrue 'testtmpro/unrunable does not exist' \
+        '[ -e testtmpro/unrunable ]'
+
+    O=`$W testtmpro/unrunable 2>&1`
+    R="$?"
+
+    assertEquals "ERROR: could not run testtmpro/unrunable" "$O"
+    assertEquals "1" "$R"
+}
+
+
 ###############################################################################
 # Actual run
 ###############################################################################
-# Should create a lock file
-test_lockfile () {
-
-}
 
 . ../tools/shunit2

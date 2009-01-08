@@ -23,7 +23,7 @@ EOF
 
 # Print an error message and exit
 error () {
-    echo "ERROR: $1"
+    echo >&2 "ERROR: $1" 
     exit 1
 }
 
@@ -65,7 +65,9 @@ done
 
 shift "$((OPTIND - 1))"
 
-# Debugging code for test cases.
+
+#BEGIN_DEBUG
+# Print out the current variables
 if [ -n "$DEBUG_FLAG" ] ; then
     case "$DEBUG_FLAG" in
         'CONFIGFILE')
@@ -80,6 +82,7 @@ if [ -n "$DEBUG_FLAG" ] ; then
     esac
     exit
 fi
+#END_DEBUG
 
 # Check to make sure the options are good
 if [ -n "$CONFIGFILE" -a ! -r "$CONFIGFILE" ] ; then
@@ -88,5 +91,10 @@ fi
 
 if [ ! -w "$QUEUEDIR" ] ; then
     error "could not write to queue directory $QUEUEDIR"
+fi
+
+# Make sure the executable is runnable
+if [ ! -x "$1" ] ; then
+    error "could not run $1"
 fi
 
