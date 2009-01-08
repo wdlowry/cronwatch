@@ -98,3 +98,28 @@ if [ ! -x "$1" ] ; then
     error "could not run $1"
 fi
 
+# Generate a (hopefully) unique directory for the queue directory
+UNIQUEDIR=`date +%Y%m%d%H%M%S_$$`
+
+if [ ! "$?" = '0' ] ; then
+    error 'could not generate date'
+fi
+
+# Make sure the directory and lock file don't already exist
+# (this should never happen)
+if [ -e "$QUEUEDIR/$UNIQUEDIR.lock" -o -e "$QUEUEDIR/$UNIQUEDIR" ] ; then
+    error "unique directory $UNIQUEDIR was not unique"
+fi
+
+# Create the queue directory
+mkdir "$QUEUEDIR/$UNIQUEDIR"
+
+if [ ! "$?" = '0' ] ; then
+    error "could not create queue directory $QUEUEDIR/$UNIQUEDIR"
+fi
+
+# Run the program
+$1 > "$QUEUEDIR/$UNIQUEDIR/output" 2>&1
+
+RETURNVAL="$?"
+
