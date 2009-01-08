@@ -209,6 +209,31 @@ test_missing_executable () {
 ###############################################################################
 # Actual run
 ###############################################################################
+# Should create and remove the lock file
+test_lock_create () {
+    O=`$W -z KEEPLOCK testtmpro/simple 2>&1`
+    R="$?"
+
+    assertEquals "" "$O"
+    assertEquals "0" "$R"
+
+    QD=`getqd`
+    assertTrue "cat $QD.lock | egrep ^[0-9]{2,10}$"
+}
+
+# Should clean up the lock file on exit
+test_lock_cleanup () {
+    O=`$W testtmpro/simple 2>&1`
+    R="$?"
+
+    assertEquals "" "$O"
+    assertEquals "0" "$R"
+
+    QD=`getqd`
+    assertTrue "[ ! -e $QD.lock ]"
+}
+
+
 # Should create a queue directory in the correct format
 test_queuedir () {
     O=`$W testtmpro/simple 2>&1`
@@ -220,7 +245,7 @@ test_queuedir () {
     QD=`getqd`
     QD=`basename "$QD"`
 
-    assertTrue "echo $QD | egrep '^[0-9]{14}_[0-9]{2,10}'"
+    assertTrue "echo $QD | egrep ^[0-9]{14}_[0-9]{2,10}$"
 }
 
 # Should capture all output from run

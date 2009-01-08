@@ -27,6 +27,16 @@ error () {
     exit 1
 }
 
+# Perform cleanup tasks
+cleanup () {
+    # BEGIN_DEBUG
+    if [ "$DEBUG_FLAG" = "KEEPLOCK" ] ; then
+        return
+    fi
+    # END_DEBUG
+    rm -rf "$QUEUEDIR/$UNIQUEDIR.lock"
+}
+
 # Check for necessary options
 if [ -z "$1" ] ; then
     echo >&2 'ERROR: missing argument'
@@ -72,15 +82,17 @@ if [ -n "$DEBUG_FLAG" ] ; then
     case "$DEBUG_FLAG" in
         'CONFIGFILE')
             echo "$CONFIGFILE"
+            exit
             ;;
         'QUEUEDIR')
             echo "$QUEUEDIR"
+            exit
             ;;
         'UNIQUEID')
             echo "$UNIQUEID"
+            exit
             ;;
     esac
-    exit
 fi
 #END_DEBUG
 
@@ -110,6 +122,12 @@ fi
 if [ -e "$QUEUEDIR/$UNIQUEDIR.lock" -o -e "$QUEUEDIR/$UNIQUEDIR" ] ; then
     error "unique directory $UNIQUEDIR was not unique"
 fi
+
+# Set up the cleanup
+trap cleanup 0
+
+# Create the lock file
+echo "$$" > "$QUEUEDIR/$UNIQUEDIR.lock"
 
 # Create the queue directory
 mkdir "$QUEUEDIR/$UNIQUEDIR"
