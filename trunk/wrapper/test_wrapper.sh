@@ -63,6 +63,15 @@ echo stdout
 exit 2
 EOF
     chmod +x testtmpro/simple
+
+    # Create a executable that processes arguments
+    cat > testtmpro/args << EOF
+#!/bin/sh
+for ARG in "\$@"; do
+    echo \$ARG
+done
+EOF
+    chmod +x testtmpro/args
 }
 
 oneTimeTearDown() {
@@ -207,6 +216,7 @@ test_queuedir () {
     assertTrue "echo $QD | egrep '^[0-9]{14}_[0-9]{2,10}'"
 }
 
+# Should capture all output from run
 test_output () {
     O=`$W testtmpro/simple 2>&1`
     R="$?"
@@ -219,6 +229,22 @@ test_output () {
     # Note: this has to be split over two line to match the linebreaks
     assertEquals 'stderr
 stdout' "`cat $QD/output`"
+}
+
+# Should handle arguments correctly
+test_call_args () {
+    O=`$W testtmpro/args first second 'third fourth' 2>&1`
+    R="$?"
+    
+    assertEquals "" "$O"
+    assertEquals "0" "$R"
+
+    QD=`getqd`
+
+    # Note: this has to be split over two line to match the linebreaks
+    assertEquals 'first
+second
+third fourth' "`cat $QD/output`"
 }
 
 . ../tools/shunit2

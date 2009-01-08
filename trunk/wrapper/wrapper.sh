@@ -118,8 +118,11 @@ if [ ! "$?" = '0' ] ; then
     error "could not create queue directory $QUEUEDIR/$UNIQUEDIR"
 fi
 
+PROG="$1"
+shift 1
+
 # Run the program
-$1 > "$QUEUEDIR/$UNIQUEDIR/output" 2>&1
+"$PROG" "$@" > "$QUEUEDIR/$UNIQUEDIR/output" 2>&1
 
 RETURNVAL="$?"
 
