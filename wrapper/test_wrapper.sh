@@ -27,6 +27,14 @@ fi
 
 rm -f tmpfile
 
+###############################################################################
+# Helper functions
+###############################################################################
+# Get the queue directory
+getqd() {
+    find testtmp/q -mindepth 1 -maxdepth 1 -type d
+}
+
 
 ###############################################################################
 # Test environment functions
@@ -46,6 +54,15 @@ oneTimeSetUp() {
     # Create an "unrunable" file (this will actually work for root)
     touch testtmpro/unrunable
     chmod 644 testtmpro/unrunable
+
+    # Create a simple executable
+    cat > testtmpro/simple << EOF
+#!/bin/sh
+echo >&2 stderr
+echo stdout
+exit 2
+EOF
+    chmod +x testtmpro/simple
 }
 
 oneTimeTearDown() {
@@ -176,5 +193,32 @@ test_missing_executable () {
 ###############################################################################
 # Actual run
 ###############################################################################
+# Should create a queue directory in the correct format
+test_queuedir () {
+    O=`$W testtmpro/simple 2>&1`
+    R="$?"
+
+    assertEquals "" "$O"
+    assertEquals "0" "$R"
+
+    QD=`getqd`
+    QD=`basename "$QD"`
+
+    assertTrue "echo $QD | egrep '^[0-9]{14}_[0-9]{2,10}'"
+}
+
+test_output () {
+    O=`$W testtmpro/simple 2>&1`
+    R="$?"
+    
+    assertEquals "" "$O"
+    assertEquals "0" "$R"
+
+    QD=`getqd`
+
+    # Note: this has to be split over two line to match the linebreaks
+    assertEquals 'stderr
+stdout' "`cat $QD/output`"
+}
 
 . ../tools/shunit2
