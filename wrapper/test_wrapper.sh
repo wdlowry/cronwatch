@@ -72,6 +72,13 @@ for ARG in "\$@"; do
 done
 EOF
     chmod +x testtmpro/args
+    
+    # Create a executable that processes arguments
+    cat > testtmpro/env << EOF
+#!/bin/sh
+echo \$VAR
+EOF
+    chmod +x testtmpro/env
 }
 
 oneTimeTearDown() {
@@ -245,6 +252,21 @@ test_call_args () {
     assertEquals 'first
 second
 third fourth' "`cat $QD/output`"
+}
+
+# Should have a clean environment
+test_env () {
+    export VAR=1
+    O=`$W testtmpro/env 2>&1`
+    R="$?"
+    
+    assertEquals "" "$O"
+    assertEquals "0" "$R"
+
+    QD=`getqd`
+
+    assertEquals '' "`cat $QD/output`"
+
 }
 
 . ../tools/shunit2

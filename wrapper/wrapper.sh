@@ -122,7 +122,7 @@ PROG="$1"
 shift 1
 
 # Run the program
-"$PROG" "$@" > "$QUEUEDIR/$UNIQUEDIR/output" 2>&1
+env - "$PROG" "$@" > "$QUEUEDIR/$UNIQUEDIR/output" 2>&1
 
 RETURNVAL="$?"
 
