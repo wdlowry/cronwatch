@@ -38,6 +38,10 @@ oneTimeSetUp() {
     # Create an "unreadable" file (this won't work correctly for root)
     touch testtmpro/unreadable
     chmod 000 testtmpro/unreadable
+
+    # Create an "unwriteable" file (this won't work correctly for root)
+    mkdir testtmpro/unwriteable
+    chmod 555 testtmpro/unwriteable
 }
 
 oneTimeTearDown() {
@@ -46,6 +50,7 @@ oneTimeTearDown() {
 
 setUp() {
     mkdir testtmp
+    mkdir -p testtmp/q
 }
 
 tearDown() {
@@ -105,12 +110,14 @@ test_opt_uid () {
 
 # Should flag an error if the config file doesn't exist or isn't readable
 test_configfile_readable () {
-    O=`./wrapper -c testtmp/doesntexist /dev/null 2>&1`
+    O=`./wrapper -c doesntexist /dev/null 2>&1`
     R="$?"
 
-    assertEquals 'ERROR: could not read config file testtmp/doesntexist' "$O"
+    assertEquals 'ERROR: could not read config file doesntexist' "$O"
     assertEquals "1" "$R"
     
+    test "$ROOTRUN" = '1' && return
+
     assertTrue 'testtmpro/unreadable does not exist' \
         '[ -e testtmpro/unreadable ]'
     
@@ -123,5 +130,23 @@ test_configfile_readable () {
 
 # TODO add test to check to make sure config file gets copied
 
+test_queuedir_writable () {
+    O=`./wrapper -q doesntexist /dev/null 2>&1`
+    R="$?"
+    
+    assertEquals 'ERROR: could not write to queue directory doesntexist' "$O"
+    assertEquals "1" "$R"
+
+    test "$ROOTRUN" = '1' && return
+
+    assertTrue 'testtmpro/unwriteable does not exist' \
+        '[ -e testtmpro/unwriteable ]'
+    
+    O=`./wrapper -q testtmpro/unwriteable /dev/null 2>&1`
+    R="$?"
+
+    assertEquals 'ERROR: could not write to queue directory testtmpro/unwriteable' "$O"
+    assertEquals "1" "$R"
+}
 
 . ../tools/shunit2

@@ -81,8 +81,12 @@ if [ -n "$DEBUG_FLAG" ] ; then
     exit
 fi
 
-# Check to make sure options are good
-if [ ! -e "$CONFIGFILE" -o ! -r "$CONFIGFILE" ] ; then
+# Check to make sure the options are good
+if [ -n "$CONFIGFILE" -a ! -r "$CONFIGFILE" ] ; then
     error "could not read config file $CONFIGFILE"
+fi
+
+if [ ! -w "$QUEUEDIR" ] ; then
+    error "could not write to queue directory $QUEUEDIR"
 fi
 
