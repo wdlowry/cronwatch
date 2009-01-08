@@ -145,6 +145,15 @@ if [ -n "$CONFIGFILE" ] ; then
     fi
 fi
 
+# Store the unique id to a file
+if [ -n "$UNIQUEID" ] ; then
+    echo "$UNIQUEID" > "$QUEUEDIR/$UNIQUEDIR/uid"
+
+    if [ ! "$?" = '0' ] ; then
+        error "could not store unique id"
+    fi
+fi
+
 PROG="$1"
 shift 1
 
