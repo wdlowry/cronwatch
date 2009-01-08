@@ -13,9 +13,9 @@
   * Default: none
 
 = Queue Directory Layout =
-Each time a cron job runs, cronwatch will create a unique directory QUEUE_DIR/ID, where ID is generated using the date (20010113083749) and PID.
+Each time a cron job runs, cronwatch will create a unique directory QUEUEDIR/ID, where ID is generated using the date (20010113083749) and PID.
 
- * QUEUE_DIR
+ * QUEUEDIR
   * ID.lock - the lock file to let the collector know that this job is still running; also contains the PID of the cronwatch wrapper script
   * ID/
    * output - contains the output the actual job
