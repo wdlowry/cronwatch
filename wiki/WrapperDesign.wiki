@@ -20,7 +20,7 @@ Each time a cron job runs, cronwatch will create a unique directory QUEUEDIR/DIR
   * DIR/
    * output - contains the output the actual job
    * config - the config file, if one was specified
-   * status - data about the run including start time, stop time, return code, full path, arguments
+   * status - data about the run including start time, stop time, return code, full path, arguments, unique id
 
 
 = Process =
