@@ -310,4 +310,22 @@ test_configfile () {
     assertEquals 'config' "`cat $QD/config`"
 }
 
+# Should create a file with the unique id
+test_uniqueid () {
+    O=`$W  testtmpro/simple 2>&1`
+    QD=`getqd`
+    assertTrue "[ ! -e $QD/uid ]"
+    rm -rf "$QD"
+
+    O=`$W -u 'unique id' testtmpro/simple 2>&1`
+    R="$?"
+    
+    assertEquals "" "$O"
+    assertEquals "0" "$R"
+
+    QD=`getqd`
+
+    assertEquals 'unique id' "`cat $QD/uid`"
+}
+
 . ../tools/shunit2
