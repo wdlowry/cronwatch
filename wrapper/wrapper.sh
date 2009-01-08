@@ -21,6 +21,12 @@ options:
 EOF
 }
 
+# Print an error message and exit
+error () {
+    echo "ERROR: $1"
+    exit 1
+}
+
 # Check for necessary options
 if [ -z "$1" ] ; then
     echo >&2 'ERROR: missing argument'
@@ -74,3 +80,9 @@ if [ -n "$DEBUG_FLAG" ] ; then
     esac
     exit
 fi
+
+# Check to make sure options are good
+if [ ! -e "$CONFIGFILE" -o ! -r "$CONFIGFILE" ] ; then
+    error "could not read config file $CONFIGFILE"
+fi
+

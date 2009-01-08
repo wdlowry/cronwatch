@@ -8,6 +8,54 @@
 # Released under the GPL version 2
 #
 
+# Check to make sure we're not running as root
+touch tmpfile
+chmod 000 tmpfile
+
+if [ -r tmpfile ] ; then
+    cat << EOF
+WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
+
+It appears that you're running as root. Some of the tests will be skipped
+because they will not work correctly.
+
+WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING! WARNING!
+
+EOF
+    ROOTRUN='1'
+fi
+
+rm -f tmpfile
+
+
+###############################################################################
+# Test environment functions
+###############################################################################
+# These are files that don't need to be created/destroyed for each test
+oneTimeSetUp() {
+    mkdir testtmpro
+    
+    # Create an "unreadable" file (this won't work correctly for root)
+    touch testtmpro/unreadable
+    chmod 000 testtmpro/unreadable
+}
+
+oneTimeTearDown() {
+    rm -rf testtmpro
+}
+
+setUp() {
+    mkdir testtmp
+}
+
+tearDown() {
+    rm -rf testtmp
+}
+
+###############################################################################
+# Argument/Option tests
+###############################################################################
+
 # Should fail with an error without any command line options
 test_fail_noargs () {
     O=`./wrapper 2>&1 | head -1`
@@ -54,5 +102,26 @@ test_opt_uid () {
     O=`./wrapper -u uniqueid -z UNIQUEID /dev/null`
     assertEquals 'uniqueid' "$O"
 }
+
+# Should flag an error if the config file doesn't exist or isn't readable
+test_configfile_readable () {
+    O=`./wrapper -c testtmp/doesntexist /dev/null 2>&1`
+    R="$?"
+
+    assertEquals 'ERROR: could not read config file testtmp/doesntexist' "$O"
+    assertEquals "1" "$R"
+    
+    assertTrue 'testtmpro/unreadable does not exist' \
+        '[ -e testtmpro/unreadable ]'
+    
+    O=`./wrapper -c testtmpro/unreadable /dev/null 2>&1`
+    R="$?"
+
+    assertEquals 'ERROR: could not read config file testtmpro/unreadable' "$O"
+    assertEquals "1" "$R"
+}
+
+# TODO add test to check to make sure config file gets copied
+
 
 . ../tools/shunit2
