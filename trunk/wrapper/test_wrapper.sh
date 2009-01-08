@@ -130,7 +130,7 @@ test_configfile_readable () {
 
 # TODO add test to check to make sure config file gets copied
 
-test_queuedir_writable () {
+test_queuedir_writeable () {
     O=`./wrapper -q doesntexist /dev/null 2>&1`
     R="$?"
     
@@ -147,6 +147,14 @@ test_queuedir_writable () {
 
     assertEquals 'ERROR: could not write to queue directory testtmpro/unwriteable' "$O"
     assertEquals "1" "$R"
+}
+
+###############################################################################
+# Actual run
+###############################################################################
+# Should create a lock file
+test_lockfile () {
+
 }
 
 . ../tools/shunit2
