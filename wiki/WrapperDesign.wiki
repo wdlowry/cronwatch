@@ -27,6 +27,7 @@ Each time a cron job runs, cronwatch will create a unique directory QUEUEDIR/DIR
  # Read and handle command line arguments
  # Determine unique directory(and make sure it doesn't exist)
  # Set up the signal handler for quit
+  * Send kill to child?
   * Write the stop time to the status file
   * Remove the lock file
  # Create the lock file
