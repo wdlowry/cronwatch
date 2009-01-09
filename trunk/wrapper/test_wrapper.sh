@@ -58,6 +58,7 @@ oneTimeSetUp() {
     # Create a simple executable
     cat > testtmpro/simple << EOF
 #!/bin/sh
+if [ -n "\$1" ] ; then sleep \$1; fi
 echo >&2 stderr
 echo stdout
 exit 2
@@ -310,22 +311,32 @@ test_configfile () {
     assertEquals 'config' "`cat $QD/config`"
 }
 
-# Should create a file with the unique id
-test_uniqueid () {
-    O=`$W  testtmpro/simple 2>&1`
-    QD=`getqd`
-    assertTrue "[ ! -e $QD/uid ]"
-    rm -rf "$QD"
-
-    O=`$W -u 'unique id' testtmpro/simple 2>&1`
+# Should capture the status to the status file
+test_status () {
+    O=`$W -u 'unique id' testtmpro/simple 2 arg1 arg2 2>&1`
     R="$?"
     
     assertEquals "" "$O"
     assertEquals "0" "$R"
 
     QD=`getqd`
+    ST="$QD/status"
 
-    assertEquals 'unique id' "`cat $QD/uid`"
+    START=`grep START $ST | cut -f 2- -d =`
+    STOP=`grep STOP $ST | cut -f 2- -d =`
+    RETCODE=`grep RETCODE $ST | cut -f 2- -d =`
+    FULLPATH=`grep FULLPATH $ST | cut -f 2- -d =`
+    UNIQUEID=`grep UNIQUEID $ST | cut -f 2- -d =`
+    ARGUMENTS=`grep ARGUMENTS $ST | cut -f 2- -d =`
+
+    assertTrue "echo $START | egrep '^[0-9]{4}(-[0-9]{2}){2} ([0-9]{2}:){2}[0-9]{2}Z'"
+    assertTrue "echo $STOP | egrep '^[0-9]{4}(-[0-9]{2}){2} ([0-9]{2}:){2}[0-9]{2}Z'"
+    assertNotEquals "$START" "$STOP"
+    assertEquals '2' "$RETCODE"
+    assertEquals 'testtmpro/simple' "$FULLPATH"
+    assertEquals 'unique id' "$UNIQUEID"
+    assertEquals '2 arg1 arg2' "$ARGUMENTS"
+
 }
 
 . ../tools/shunit2

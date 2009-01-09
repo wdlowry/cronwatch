@@ -27,6 +27,15 @@ error () {
     exit 1
 }
 
+# Get the date
+get_date () {
+    date -u '+%Y-%m-%d %H:%M:%SZ'
+    
+    if [ ! "$?" = '0' ] ; then
+        error "could not get date"
+    fi
+}
+
 # Perform cleanup tasks
 cleanup () {
     # BEGIN_DEBUG
@@ -145,20 +154,28 @@ if [ -n "$CONFIGFILE" ] ; then
     fi
 fi
 
-# Store the unique id to a file
-if [ -n "$UNIQUEID" ] ; then
-    echo "$UNIQUEID" > "$QUEUEDIR/$UNIQUEDIR/uid"
+# Create the status file
+STATUS="$QUEUEDIR/$UNIQUEDIR/status"
+touch "$STATUS"
 
-    if [ ! "$?" = '0' ] ; then
-        error "could not store unique id"
-    fi
+if [ ! "$?" = '0' ] ; then
+    error "could not create status file"
 fi
 
 PROG="$1"
 shift 1
 
+echo "FULLPATH=$PROG" >> "$STATUS"
+echo "ARGUMENTS=$*" >> "$STATUS"
+echo "UNIQUEID=$UNIQUEID" >> "$STATUS"
+echo "START=`get_date`" >> "$STATUS"
+
 # Run the program
 env - "$PROG" "$@" > "$QUEUEDIR/$UNIQUEDIR/output" 2>&1
+
+RETCODE="$?"
+echo "STOP=`get_date`" >> "$STATUS"
+echo "RETCODE=$RETCODE" >> "$STATUS"
 
 RETURNVAL="$?"
 
