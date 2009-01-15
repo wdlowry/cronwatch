@@ -94,7 +94,7 @@ while getopts c:hq:u:z: OPT; do
     esac
 done
 
-shift "$((OPTIND - 1))"
+shift `expr $OPTIND - 1`
 
 
 #BEGIN_DEBUG
