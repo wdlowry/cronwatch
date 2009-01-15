@@ -44,7 +44,7 @@ rm -f tmpfile
 ###############################################################################
 # Get the queue directory
 getqd() {
-    find testtmp/q -mindepth 1 -maxdepth 1 -type d
+    find testtmp/q -type d | grep -v '^testtmp/q$'
 }
 
 
@@ -174,7 +174,7 @@ test_configfile_readable () {
     test "$ROOTRUN" = '1' && return
 
     assertTrue 'testtmpro/unreadable does not exist' \
-        '[ -e testtmpro/unreadable ]'
+        '[ -f testtmpro/unreadable ]'
     
     O=`./wrapper.sh -c testtmpro/unreadable /dev/null 2>&1`
     R="$?"
@@ -195,7 +195,7 @@ test_queuedir_writeable () {
     test "$ROOTRUN" = '1' && return
 
     assertTrue 'testtmpro/unwriteable does not exist' \
-        '[ -e testtmpro/unwriteable ]'
+        '[ -d testtmpro/unwriteable ]'
     
     O=`./wrapper.sh -q testtmpro/unwriteable /dev/null 2>&1`
     R="$?"
@@ -212,7 +212,7 @@ test_missing_executable () {
     assertEquals "1" "$R"
     
     assertTrue 'testtmpro/unrunable does not exist' \
-        '[ -e testtmpro/unrunable ]'
+        '[ -f testtmpro/unrunable ]'
 
     O=`$W testtmpro/unrunable 2>&1`
     R="$?"
@@ -246,7 +246,7 @@ test_lock_cleanup () {
     assertEquals "0" "$R"
 
     QD=`getqd`
-    assertTrue "[ ! -e $QD.lock ]"
+    assertTrue "[ ! -f $QD.lock ]"
 }
 
 
