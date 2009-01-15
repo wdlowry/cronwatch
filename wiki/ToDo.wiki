@@ -1,0 +1,4 @@
+#summary Various todo items for different versions
+
+=For Initial Release=
+ * Add mechanism to specify default paths while building (makefile, configure script?)
