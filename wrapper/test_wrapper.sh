@@ -234,7 +234,7 @@ test_lock_create () {
     assertEquals "0" "$R"
 
     QD=`getqd`
-    assertTrue "cat $QD.lock | egrep ^[0-9]{2,10}$"
+    assertTrue 'cat $QD.lock | egrep "^[0-9][0-9][0-9]*$"'
 }
 
 # Should clean up the lock file on exit

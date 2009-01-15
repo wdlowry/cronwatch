@@ -140,7 +140,7 @@ fi
 
 # Make sure the directory and lock file don't already exist
 # (this should never happen)
-if [ -e "$QUEUEDIR/$UNIQUEDIR.lock" -o -e "$QUEUEDIR/$UNIQUEDIR" ] ; then
+if [ -f "$QUEUEDIR/$UNIQUEDIR.lock" -o -f "$QUEUEDIR/$UNIQUEDIR" ] ; then
     error "unique directory $UNIQUEDIR was not unique"
 fi
 
