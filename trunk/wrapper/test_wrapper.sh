@@ -297,10 +297,11 @@ third fourth' "`cat $QD/output`"
 
 # Should have a clean environment
 test_env () {
-    export VAR=1
+    VAR=1
+    export VAR
     O=`$W testtmpro/env 2>&1`
     R="$?"
-    
+
     assertEquals "" "$O"
     assertEquals "0" "$R"
 
