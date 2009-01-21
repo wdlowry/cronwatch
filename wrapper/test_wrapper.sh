@@ -261,7 +261,7 @@ test_queuedir () {
     QD=`getqd`
     QD=`basename "$QD"`
 
-    assertTrue "echo $QD | egrep ^[0-9]{14}_[0-9]{2,10}$"
+    assertTrue "echo ${QD}_ | egrep '^[0-9][0-9]+_[0-9][0-9][0-9]*_'"
 }
 
 # Should capture all output from run
