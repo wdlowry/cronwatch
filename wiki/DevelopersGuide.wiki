@@ -2,6 +2,9 @@
 #labels Featured
 
  * ProjectRequirements
+  * WrapperRequirements
+  * CollectorRequirements
+  * ParserRequirements
  * CodingStandards
  * ToDo
  * SourceDirectoryStructure
