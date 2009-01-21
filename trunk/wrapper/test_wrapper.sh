@@ -261,7 +261,10 @@ test_queuedir () {
     QD=`getqd`
     QD=`basename "$QD"`
 
-    assertTrue "echo ${QD}_ | egrep '^[0-9][0-9]+_[0-9][0-9][0-9]*_'"
+    REGEX="^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]"
+    REGEX="$REGEX[0-9][0-9]_[0-9][0-9]+$"
+
+    assertTrue "echo $QD | egrep '$REGEX'"
 }
 
 # Should capture all output from run
@@ -342,8 +345,11 @@ test_status () {
     UNIQUEID=`grep UNIQUEID $ST | cut -f 2- -d =`
     ARGUMENTS=`grep ARGUMENTS $ST | cut -f 2- -d =`
 
-    assertTrue "echo $START | egrep '^[0-9]{4}(-[0-9]{2}){2} ([0-9]{2}:){2}[0-9]{2}Z'"
-    assertTrue "echo $STOP | egrep '^[0-9]{4}(-[0-9]{2}){2} ([0-9]{2}:){2}[0-9]{2}Z'"
+    REGEX="^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
+    REGEX="$REGEX [0-9][0-9]:[0-9][0-9]:[0-9][0-9]Z$"
+
+    assertTrue "echo $START | egrep '$REGEX'"
+    assertTrue "echo $STOP | egrep '$REGEX'"
     assertNotEquals "$START" "$STOP"
     assertEquals '2' "$RETCODE"
     assertEquals 'testtmpro/simple' "$FULLPATH"
