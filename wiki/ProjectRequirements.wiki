@@ -7,3 +7,8 @@
  * Test on a variety of systems: AIX, HP-UX, Solaris, Linux, BSDs
 
 Please see CodingStandards as well.
+
+= Requirements for the Components =
+ * WrapperRequirements
+ * CollectorRequirements
+ * ParserRequirements
