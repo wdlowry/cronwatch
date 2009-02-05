@@ -4,15 +4,17 @@
 The collector script should run on any POSIX platform and use standard file transfer tools to upload the files (e.g. scp, rsync, ftp).
 
 = Basic Requirements =
- * Uploads files in queue directory to central cronwatch server
-   * Locks the queue directory and/or files
-   * Alerts on upload error
- * Supports multiple file upload methods
-   * rsync
-   * scp/sftp
-   * ftp
-   * http (webdav?)
-   * socket (nc) (?)
+ * Accepts these command line parameters
+  * -q Queue directory
+  * -d Remote directory
+  * -t Test the ssh connection
+ * Requires these arguments
+  * Remote username
+  * Remote host
+ * Copies the contents of the queue directory to the server (ignoring directories with lock files)
+   * Ensures each directory does not exist on the server
+   * Marks the transfer as complete
+ * Cleans up the queue directory
 
 = Environment Requirements =
   * Must run in straight bourne shell (maybe POSIX?)
@@ -20,3 +22,8 @@ The collector script should run on any POSIX platform and use standard file tran
 = Notes =
 
 = Future Requirements =
+ * Offer multiple methods of uploading the files
+   * rsync
+   * sftp
+   * others?
+ * Handle a pull method
