@@ -10,10 +10,23 @@
  * -t
   * Test the scp connection using the parameters given
 
-= Command Line Arguments
+= Command Line Arguments =
  * USERNAME
   * Remote username
   * Note: ssh uses the local username as the default for the remote username, but it would be better to force the user to supply a username so as to avoid confusion.
  * HOST
   * Remote host
 
+= Process =
+ # Read and handle command line parameters
+ # Read and handle command line arguments
+ # For each directory in the queue directory
+  # If a lock file exists, skip this directory
+  # Otherwise, generate a (hopefully) unique name (hostname + PID + this item's name)
+  # Check to make sure this name does not exist on that target server (ls file)
+   * Note: This might present a problem, if the client cannot ls that directory for whatever reason. I'm not really sure of a way to absolutely ensure that this directory name is unique. However, with the hostname and PID, the chances of a collision are minimal.
+  # Get a list of files to transfer
+  # Create a "transfer complete" file in the local item directory
+  # Copy the list of files, then the transfer file (in one operation) to the target server
+  # On successful completion of the copy, delete the local directory
+ # Exit
