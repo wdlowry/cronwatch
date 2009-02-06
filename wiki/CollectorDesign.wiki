@@ -1,0 +1,19 @@
+#summary Design of the cronwatch collector script
+
+= Command Line Parameters =
+ * -q
+  * Specifies the queue directory that the wrapper script put files into
+  * Default: `/var/lib/cronwatch/wrapper`
+ * -d
+  * Specifies the remote directory on the target upload server
+  * Default: use the default directory (usually the home directory of the remote user)
+ * -t
+  * Test the scp connection using the parameters given
+
+= Command Line Arguments
+ * USERNAME
+  * Remote username
+  * Note: ssh uses the local username as the default for the remote username, but it would be better to force the user to supply a username so as to avoid confusion.
+ * HOST
+  * Remote host
+
