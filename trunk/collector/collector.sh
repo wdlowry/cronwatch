@@ -23,8 +23,12 @@
 # Print out the usage
 usage () {
     cat << EOF
-usage: $0 [options] executable [arguments]
+usage: $0 [options] username host
 
+options:
+  -d                    target directory
+  -q                    queue directory
+  -t                    test the ssh/scp connection
 EOF
 }
 
@@ -33,4 +37,53 @@ error () {
     echo >&2 "ERROR: $1" 
     exit 1
 }
+
+TARGET_DIR=''
+QUEUEDIR='%QUEUEDIR%'
+
+# Handle the command line parameters
+while getopts d:hq:tz: OPT; do
+    case "$OPT" in
+        d) 
+            TARGETDIR="$OPTARG"
+            ;;
+        h)
+            usage
+            exit
+            ;;
+        q)
+            QUEUEDIR="$OPTARG"
+            ;;
+        t) ;;
+        z)
+            # This is for the test code
+            DEBUG_FLAG="$OPTARG"
+            ;;
+        ?) ;;
+    esac
+done
+
+if [ -z "$2" ] ; then
+    echo >&2 'ERROR: missing arguments'
+    usage >&1
+    exit 1
+fi
+
+
+#BEGIN_DEBUG
+# Print out the current variable
+if [ -n "$DEBUG_FLAG" ] ; then
+    case "$DEBUG_FLAG" in 
+        'TARGETDIR')
+            echo "$TARGETDIR"
+            exit
+            ;;
+        'QUEUEDIR')
+            echo "$QUEUEDIR"
+            exit
+            ;;
+    esac
+fi
+#END_DEBUG
+
 
