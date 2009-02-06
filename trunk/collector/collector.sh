@@ -38,7 +38,7 @@ error () {
     exit 1
 }
 
-TARGET_DIR=''
+TARGETDIR=''
 QUEUEDIR='%QUEUEDIR%'
 TESTFLAG=''
 
@@ -107,11 +107,12 @@ if [ "$TESTFLAG" = '1' ] ; then
         error "could not create test upload file $QUEUEDIR/test_upload"
     fi
 
-    scp -B -q -r "$QUEUEDIR/test_upload" "$TARGETUSER"@"$TARGETHOST":
+    scp -B -q -r "$QUEUEDIR/test_upload" \
+        "$TARGETUSER"@"$TARGETHOST":"$TARGETDIR"
     
-    if [ ! "$?" = 0 ] ; then
-        error "could not upload to $TARGETUSER@$TARGETHOST:"
-    fi
+    #if [ ! "$?" = 0 ] ; then
+    #    error "could not upload to $TARGETUSER@$TARGETHOST:$TARGETDIR"
+    #fi
 
     echo 'Connection successful!'
     
