@@ -30,8 +30,10 @@ oneTimeSetUp() {
 
     cat > testbin/scp << EOF
 #!/bin/sh
-
 echo \$* > testtmp/scp.out
+grep error testtmp/scp.out > /dev/null 2>&1
+if [ ! "\$?" = '1' ] ; then echo >&2 error!;  fi
+exit 2
 EOF
 
     chmod +x testbin/scp
@@ -104,13 +106,25 @@ test_queuedir_readable () {
 
 # -t should test the scp connection
 test_opt_test() {
-    O=`$C -t username host 2>&1`
+    O=`$C -t -d somedir username host 2>&1`
     R="$?"
     assertEquals 'Connection successful!' "$O"
     assertEquals '0' "$R"
 
     OUT=`cat testtmp/scp.out`
-    assertEquals '-B -q -r testtmp/q/test_upload username@host:' "$OUT"
+    assertEquals '-B -q -r testtmp/q/test_upload username@host:somedir' "$OUT"
 }
+
+# -t should print an error message test the scp connection
+test_opt_test_error() {
+    O=`$C -t -d somedir user errorhost 2>&1`
+    R="$?"
+    assertEquals 'error: could not upload to user@errorhost:somedir' "$O"
+    assertEquals '1' "$R"
+
+    OUT=`cat testtmp/scp.out`
+    assertEquals '-B -q -r testtmp/q/test_upload user@errorhost:somedir' "$OUT"
+}
+
 
 . ../tools/shunit2
