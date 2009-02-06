@@ -58,12 +58,6 @@ cleanup () {
     rm -rf "$QUEUEDIR/$UNIQUEDIR.lock"
 }
 
-# Check for necessary options
-if [ -z "$1" ] ; then
-    echo >&2 'ERROR: missing argument'
-    usage >&2
-    exit 1
-fi
 
 # Set option variables
 CONFIGFILE=''
@@ -96,6 +90,12 @@ done
 
 shift `expr $OPTIND - 1`
 
+# Check for necessary options
+if [ -z "$1" ] ; then
+    echo >&2 'ERROR: missing argument'
+    usage >&2
+    exit 1
+fi
 
 #BEGIN_DEBUG
 # Print out the current variables
