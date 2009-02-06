@@ -20,6 +20,37 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+###############################################################################
+# Test environment functions
+###############################################################################
+oneTimeSetUp() {
+    mkdir testbin
+
+    export PATH=./testbin:$PATH
+
+    cat > testbin/scp << EOF
+#!/bin/sh
+
+echo \$* > testtmp/scp.out
+EOF
+
+    chmod +x testbin/scp
+
+    C='./collector.sh -q testtmp/q'
+}
+
+oneTimeTearDown() {
+    rm -rf testbin
+}
+
+setUp() {
+    mkdir testtmp
+    mkdir testtmp/q
+}
+
+tearDown() {
+    rm -rf testtmp
+}
 
 ###############################################################################
 # Argument/Parameters tests
@@ -61,6 +92,25 @@ test_opt_queue () {
 
     O=`./collector.sh -q queuedir -z QUEUEDIR username host`
     assertEquals 'queuedir' "$O"
+}
+
+# Make sure the queue dir is readable
+test_queuedir_readable () {
+    O=`./collector.sh -q doesntexist username host 2>&1`
+    assertEquals '1' "$?"
+    assertEquals 'ERROR: could not read queue directory doesntexist' "$O"
+
+}
+
+# -t should test the scp connection
+test_opt_test() {
+    O=`$C -t username host 2>&1`
+    R="$?"
+    assertEquals 'Connection successful!' "$O"
+    assertEquals '0' "$R"
+
+    OUT=`cat testtmp/scp.out`
+    assertEquals '-B -q -r testtmp/q/test_upload username@host:' "$OUT"
 }
 
 . ../tools/shunit2

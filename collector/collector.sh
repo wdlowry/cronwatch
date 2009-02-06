@@ -40,6 +40,7 @@ error () {
 
 TARGET_DIR=''
 QUEUEDIR='%QUEUEDIR%'
+TESTFLAG=''
 
 # Handle the command line parameters
 while getopts d:hq:tz: OPT; do
@@ -54,7 +55,9 @@ while getopts d:hq:tz: OPT; do
         q)
             QUEUEDIR="$OPTARG"
             ;;
-        t) ;;
+        t)
+            TESTFLAG='1'
+            ;;
         z)
             # This is for the test code
             DEBUG_FLAG="$OPTARG"
@@ -63,11 +66,17 @@ while getopts d:hq:tz: OPT; do
     esac
 done
 
+shift `expr $OPTIND - 1`
+
+# Check for necessary arguments
 if [ -z "$2" ] ; then
     echo >&2 'ERROR: missing arguments'
     usage >&1
     exit 1
 fi
+
+TARGETUSER="$1"
+TARGETHOST="$2"
 
 
 #BEGIN_DEBUG
@@ -86,4 +95,26 @@ if [ -n "$DEBUG_FLAG" ] ; then
 fi
 #END_DEBUG
 
+# Make sure the queue directory is readable
+if [ ! -r "$QUEUEDIR" ] ; then
+    error "could not read queue directory doesntexist"
+fi
+
+# Test the connection
+if [ "$TESTFLAG" = '1' ] ; then
+    touch "$QUEUEDIR/test_upload"
+    if [ ! "$?" = 0 ] ; then
+        error "could not create test upload file $QUEUEDIR/test_upload"
+    fi
+
+    scp -B -q -r "$QUEUEDIR/test_upload" "$TARGETUSER"@"$TARGETHOST":
+    
+    if [ ! "$?" = 0 ] ; then
+        error "could not upload to $TARGETUSER@$TARGETHOST:"
+    fi
+
+    echo 'Connection successful!'
+    
+    exit
+fi
 
