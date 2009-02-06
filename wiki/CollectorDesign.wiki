@@ -1,4 +1,5 @@
 #summary Design of the cronwatch collector script
+#labels Phase-Design,Collector
 
 = Command Line Parameters =
  * -d
