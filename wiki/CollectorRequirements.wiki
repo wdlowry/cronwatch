@@ -5,8 +5,8 @@ The collector script should run on any POSIX platform and use standard file tran
 
 = Basic Requirements =
  * Accepts these command line parameters
-  * -q Queue directory
   * -d Remote directory
+  * -q Queue directory
   * -t Test the ssh connection
  * Requires these arguments
   * Remote username
