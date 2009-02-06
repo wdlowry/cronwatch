@@ -1,13 +1,13 @@
 #summary Design of the cronwatch wrapper script
 #labels Phase-Design,Wrapper
 
-= Command Line Arguments =
+= Command Line Parameters =
  * -q
   * Specifies the queue directory
-  * Default: /var/lib/cronwatch/wrapper
+  * Default: `/var/lib/cronwatch/wrapper`
  * -u
   * Specifies the unique id
-  * Default: $1 or what is in the config file
+  * Default: `$1` or what is in the config file
  * -c
   * Specifies the configuration file for the processor
   * Default: none
