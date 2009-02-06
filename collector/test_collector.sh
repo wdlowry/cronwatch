@@ -20,4 +20,47 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+
+###############################################################################
+# Argument/Parameters tests
+###############################################################################
+
+# Should fail with an error with any command line arguments
+test_fail_noargs () {
+    O=`./collector.sh 2>&1 | head -1`
+    ./collector.sh > /dev/null 2>&1
+    R="$?"
+
+    assertEquals 'ERROR: missing arguments' "$O"
+    assertEquals "1" "$R"
+}
+
+# -d should set the target directory
+test_opt_dir () {
+    O=`./collector.sh -z TARGETDIR user host`
+    assertEquals '' "$O"
+
+    O=`./collector.sh -z TARGETDIR -d targetdir user host`
+    assertEquals 'targetdir' "$O"
+}
+
+# -h should display the usage and quit
+test_opt_help () {
+    O=`./collector.sh -h 2>&1 | head -1`
+    ./collector.sh -h > /dev/null 2>&1
+    R="$?"
+    
+    assertEquals 'usage: ./collector.sh [options] username host' "$O"
+    assertEquals "0" "$R"
+}
+
+# -q should set the queue directory
+test_opt_queue () {
+    O=`./collector.sh -z QUEUEDIR username host`
+    assertEquals '%QUEUEDIR%' "$O"
+
+    O=`./collector.sh -q queuedir -z QUEUEDIR username host`
+    assertEquals 'queuedir' "$O"
+}
+
 . ../tools/shunit2
