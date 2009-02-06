@@ -2,15 +2,16 @@
 #labels Phase-Design,Wrapper
 
 = Command Line Parameters =
+ * -c
+  * Specifies the configuration file for the processor
+  * Default: none
  * -q
   * Specifies the queue directory
   * Default: `/var/lib/cronwatch/wrapper`
  * -u
   * Specifies the unique id
   * Default: `$1` or what is in the config file
- * -c
-  * Specifies the configuration file for the processor
-  * Default: none
+
 
 = Queue Directory Layout =
 Each time a cron job runs, cronwatch will create a unique directory QUEUEDIR/DIR, where DIR is generated using the date (20010113083749) and PID.
