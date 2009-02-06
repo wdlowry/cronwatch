@@ -5,6 +5,8 @@
  * -c
   * Specifies the configuration file for the processor
   * Default: none
+ * -h
+  * Usage
  * -q
   * Specifies the queue directory
   * Default: `/var/lib/cronwatch/wrapper`
