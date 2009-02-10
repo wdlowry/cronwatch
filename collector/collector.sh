@@ -100,22 +100,68 @@ if [ ! -r "$QUEUEDIR" ] ; then
     error "could not read queue directory doesntexist"
 fi
 
+# Set the target
+TARGET="$TARGETUSER@$TARGETHOST:"
+
+if [ -n "$TARGETDIR" ] ; then
+    TARGET="$TARGET$TARGETDIR/"
+fi
+
 # Test the connection
 if [ "$TESTFLAG" = '1' ] ; then
     touch "$QUEUEDIR/test_upload"
-    if [ ! "$?" = 0 ] ; then
+    if [ ! "$?" = '0' ] ; then
         error "could not create test upload file $QUEUEDIR/test_upload"
     fi
 
-    scp -B -q -r "$QUEUEDIR/test_upload" \
-        "$TARGETUSER"@"$TARGETHOST":"$TARGETDIR"
+    scp -B -q -r "$QUEUEDIR/test_upload" "$TARGET"
     
-    #if [ ! "$?" = 0 ] ; then
-    #    error "could not upload to $TARGETUSER@$TARGETHOST:$TARGETDIR"
-    #fi
+    if [ ! "$?" = '0' ] ; then
+        error "could not upload to $TARGETUSER@$TARGETHOST:$TARGETDIR"
+    fi
 
     echo 'Connection successful!'
     
     exit
 fi
 
+# Generate unique directory name
+UNIQUEPREFIX="`hostname`_$$_"
+cd "$QUEUEDIR"
+
+# Go through the queue dir
+for FILE in * ; do
+    # Only handle directories
+    if [ -d "$FILE" ] ; then
+
+        # Ignore locked files
+        if [ ! -r "$FILE.lock" ] ; then
+            scp -B -q -r "$FILE" "$TARGET$UNIQUEPREFIX$FILE"
+            
+            if [ ! "$?" = '0' ] ; then
+                error "could not copy queue directory to remote server"
+            fi
+
+            touch "$FILE.complete"
+
+            if [ ! "$?" = '0' ] ; then
+                error "could not create $QUEUEDIR/$FILE.complete"
+            fi
+
+            # Copy file to show that the transfer was completed successfully
+            scp -B -q -r "$FILE.complete" "$TARGET$UNIQUEPREFIX$FILE.complete" #"$TARGETDIR"
+
+            #if [ ! "$?" = '0' ] ; then
+            #    rm -rf "$FILE.complete"
+            #    error 'could not copy transfer completed file'
+            #fi
+
+
+            # Clean up
+            rm -rf "$FILE"
+            rm -rf "$FILE.complete"
+
+            # TODO update design doc for changes
+        fi
+    fi
+done

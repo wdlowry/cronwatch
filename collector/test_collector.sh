@@ -20,20 +20,42 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+############################################################################### 
+# Helper functions
 ###############################################################################
+# Get the directory that is uploaded
+getdir() {
+    echo `cat testtmp/scp.out.1 | sed 's#.*:\([^/]*/\)\?\([^_]*_[0-9]*\)_[^_]*$#\2#'`
+}
+
+############################################################################### 
 # Test environment functions
 ###############################################################################
 oneTimeSetUp() {
     mkdir testbin
 
-    export PATH=./testbin:$PATH
+    export PATH="`pwd`/testbin:$PATH"
+    DIR="`pwd`/testtmp/"
 
     cat > testbin/scp << EOF
 #!/bin/sh
-echo \$* > testtmp/scp.out
-grep error testtmp/scp.out > /dev/null 2>&1
-if [ ! "\$?" = '1' ] ; then echo >&2 error!;  fi
-exit 2
+
+# Find out which run this is
+if [ ! -r '$DIR/scp.out.1' ] ; then
+    i=1
+else
+    last=\`ls $DIR/scp.out.* | tail -1 | sed 's/[^0-9]*//'\`
+    i=\`expr \$last + 1\`
+fi
+
+# Capture the command line
+echo \$* > "$DIR/scp.out.\$i"
+
+# Flag an error on demand
+if [ -r "$DIR/scp.error.\$i" ] ; then
+    echo >&2 'scp error!'
+    exit 2
+fi
 EOF
 
     chmod +x testbin/scp
@@ -111,19 +133,163 @@ test_opt_test() {
     assertEquals 'Connection successful!' "$O"
     assertEquals '0' "$R"
 
-    OUT=`cat testtmp/scp.out`
-    assertEquals '-B -q -r testtmp/q/test_upload username@host:somedir' "$OUT"
+    OUT=`cat testtmp/scp.out.1`
+    assertEquals '-B -q -r testtmp/q/test_upload username@host:somedir/' "$OUT"
 }
 
 # -t should print an error message test the scp connection
 test_opt_test_error() {
-    O=`$C -t -d somedir user errorhost 2>&1`
-    R="$?"
-    assertEquals 'error: could not upload to user@errorhost:somedir' "$O"
-    assertEquals '1' "$R"
+    touch testtmp/scp.error.1
 
-    OUT=`cat testtmp/scp.out`
-    assertEquals '-B -q -r testtmp/q/test_upload user@errorhost:somedir' "$OUT"
+    O=`$C -t -d somedir user host 2>&1 | grep -v 'scp error!'`
+    R="$?"
+    assertEquals 'ERROR: could not upload to user@host:somedir' "$O"
+    assertEquals '0' "$R"
+
+    OUT=`cat testtmp/scp.out.1`
+    assertEquals '-B -q -r testtmp/q/test_upload user@host:somedir/' "$OUT"
+}
+
+# Should print out the scp error
+test_opt_test_error_scp() {
+    touch testtmp/scp.error.1
+    O=`$C -t -d somedir user host 2>&1 | head -1 | grep 'error!'`
+    R="$?"
+    assertEquals '0' "$R"
+}
+
+############################################################################### 
+# Copy procedure
+###############################################################################
+# Should skip locked directories
+test_copy_skip_locked() {
+    mkdir testtmp/q/1
+    touch testtmp/q/1/1
+    touch testtmp/q/1.lock
+   
+    mkdir testtmp/q/2
+    touch testtmp/q/2/1
+    touch testtmp/q/2.lock
+    
+    O=`$C user host 2>&1`
+    assertEquals '0' "$R"
+    assertEquals '' "$O"
+
+    assertFalse '[ -r testtmp/scp.out.1 ]'
+}
+
+# Should create a unique directory on the server
+test_copy_unique() {
+    mkdir testtmp/q/1
+    touch testtmp/q/1/1
+    touch testtmp/q/1/2
+
+    O=`$C user host 2>&1`
+    assertEquals '0' "$R"
+    assertEquals '' "$O"
+
+    DIR=`getdir`
+    echo "$DIR" | grep "^`hostname`_[0-9][0-9]*$" > /dev/null
+    assertEquals '0' "$?"
+}
+
+# Should copy a couple simple directory
+test_copy_simple() {
+    mkdir testtmp/q/1
+    touch testtmp/q/1/1
+    touch testtmp/q/1/2
+    mkdir testtmp/q/2
+    touch testtmp/q/2/1
+    touch testtmp/q/2/2
+
+    O=`$C user host 2>&1`
+    assertEquals '0' "$R"
+    assertEquals '' "$O"
+
+    DIR=`getdir`
+
+    OUT=`cat testtmp/scp.out.1`
+    assertEquals "-B -q -r 1 user@host:${DIR}_1" "$OUT"
+    
+    OUT=`cat testtmp/scp.out.3`
+    assertEquals "-B -q -r 2 user@host:${DIR}_2" "$OUT"
+
+}
+
+# Should handle scp errors
+test_copy_error() {
+    touch testtmp/scp.error.1
+
+    mkdir testtmp/q/1
+    touch testtmp/q/1/1
+    
+    O=`$C user host 2>&1 | grep -v 'error!'`
+    assertEquals 'ERROR: could not copy queue directory to remote server' "$O"
+    assertEquals '0' "$R"
+}
+
+# Should print out the scp error
+test_copy_error_scp() {
+    touch testtmp/scp.error.1
+    
+    mkdir testtmp/q/1
+    touch testtmp/q/1/1
+    
+    O=`$C user host 2>&1 2>&1 | head -1 | grep 'scp error!'`
+    R="$?"
+    assertEquals '0' "$R"
+}
+
+# Should copy a transfer complete file
+test_copy_complete() {
+    mkdir testtmp/q/1
+    touch testtmp/q/1/1
+    touch testtmp/q/1/2
+
+    O=`$C user host 2>&1`
+    assertEquals '0' "$R"
+    assertEquals '' "$O"
+
+    DIR=`getdir`
+
+    OUT=`cat testtmp/scp.out.2`
+    assertEquals "-B -q -r 1.complete user@host:${DIR}_1.complete" "$OUT"
+}
+
+# TODO should fail on complete copy failure
+
+# Should add a directory scp parameters
+test_copy_directory() {
+    mkdir testtmp/q/1
+    touch testtmp/q/1/1
+
+    O=`$C -d dir user host 2>&1`
+    assertEquals '0' "$R"
+    assertEquals '' "$O"
+
+    DIR=`getdir`
+
+    OUT=`cat testtmp/scp.out.1`
+    assertEquals "-B -q -r 1 user@host:dir/${DIR}_1" "$OUT"
+    
+    OUT=`cat testtmp/scp.out.2`
+    assertEquals "-B -q -r 1.complete user@host:dir/${DIR}_1.complete" "$OUT"
+}
+
+# Should clean up queued directories
+test_copy_cleanup() {
+    mkdir testtmp/q/1
+    touch testtmp/q/1/1
+    mkdir testtmp/q/2
+    touch testtmp/q/2/1
+    touch testtmp/q/2.lock
+
+    O=`$C user host 2>&1`
+    assertEquals '0' "$R"
+    assertEquals '' "$O"
+
+    assertTrue '[ ! -d testtmp/q/1 ] '
+    assertTrue '[ ! -r testtmp/q/1.complete ] '
 }
 
 
