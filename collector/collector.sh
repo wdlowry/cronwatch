@@ -97,7 +97,7 @@ fi
 
 # Make sure the queue directory is readable
 if [ ! -r "$QUEUEDIR" ] ; then
-    error "could not read queue directory doesntexist"
+    error "could not read from queue directory doesntexist"
 fi
 
 # Set the target
@@ -117,7 +117,7 @@ if [ "$TESTFLAG" = '1' ] ; then
     scp -B -q -r "$QUEUEDIR/test_upload" "$TARGET"
     
     if [ ! "$?" = '0' ] ; then
-        error "could not upload to $TARGETUSER@$TARGETHOST:$TARGETDIR"
+        error "could not copy to $TARGETUSER@$TARGETHOST:$TARGETDIR"
     fi
 
     echo 'Connection successful!'
@@ -139,7 +139,7 @@ for FILE in * ; do
             scp -B -q -r "$FILE" "$TARGET$UNIQUEPREFIX$FILE"
             
             if [ ! "$?" = '0' ] ; then
-                error "could not copy queue directory to remote server"
+                error "could not copy to $TARGETUSER@$TARGETHOST:$TARGETDIR"
             fi
 
             touch "$FILE.complete"
@@ -149,19 +149,17 @@ for FILE in * ; do
             fi
 
             # Copy file to show that the transfer was completed successfully
-            scp -B -q -r "$FILE.complete" "$TARGET$UNIQUEPREFIX$FILE.complete" #"$TARGETDIR"
+            scp -B -q -r "$FILE.complete" "$TARGET$UNIQUEPREFIX$FILE.complete"
 
-            #if [ ! "$?" = '0' ] ; then
-            #    rm -rf "$FILE.complete"
-            #    error 'could not copy transfer completed file'
-            #fi
+            if [ ! "$?" = '0' ] ; then
+                rm -rf "$FILE.complete"
+                error "could not copy transfer-complete file to $TARGETUSER@$TARGETHOST:$TARGETDIR"
+            fi
 
 
             # Clean up
             rm -rf "$FILE"
             rm -rf "$FILE.complete"
-
-            # TODO update design doc for changes
         fi
     fi
 done
