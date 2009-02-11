@@ -135,6 +135,9 @@ test_opt_test() {
 
     OUT=`cat testtmp/scp.out.1`
     assertEquals '-B -q -r testtmp/q/test_upload username@host:dir/' "$OUT"
+
+    assertTrue 'testtmp/q/test_upload still exists' \
+        '[ ! -r testtmp/q/test_upload ]'
 }
 
 # -t should print an error message test the scp connection
@@ -152,6 +155,9 @@ test_opt_test_error() {
 
     OUT=`cat testtmp/scp.out.1`
     assertEquals '-B -q -r testtmp/q/test_upload user@host:dir/' "$OUT"
+    
+    assertTrue 'testtmp/q/test_upload still exists' \
+        '[ ! -r testtmp/q/test_upload ]'
 }
 
 ############################################################################### 
@@ -288,8 +294,9 @@ test_copy_cleanup() {
     assertEquals '0' "$?"
     assertEquals '' "$O"
 
-    assertTrue '[ ! -d testtmp/q/1 ] '
-    assertTrue '[ ! -r testtmp/q/1.complete ] '
+    assertTrue 'testtmp/q/1 still exists' '[ ! -d testtmp/q/1 ] '
+    assertTrue 'testtmp/q/1.complete still exists' \
+        '[ ! -r testtmp/q/1.complete ] '
 }
 
 . ../tools/shunit2

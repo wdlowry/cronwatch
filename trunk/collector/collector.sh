@@ -115,8 +115,14 @@ if [ "$TESTFLAG" = '1' ] ; then
     fi
 
     scp -B -q -r "$QUEUEDIR/test_upload" "$TARGET"
+    STATUS="$?"
     
+    rm -f "$QUEUEDIR/test_upload"
     if [ ! "$?" = '0' ] ; then
+        error "could not create delete upload file $QUEUEDIR/test_upload"
+    fi
+    
+    if [ ! "$STATUS" = '0' ] ; then
         error "could not copy to $TARGETUSER@$TARGETHOST:$TARGETDIR"
     fi
 
@@ -152,14 +158,14 @@ for FILE in * ; do
             scp -B -q -r "$FILE.complete" "$TARGET$UNIQUEPREFIX$FILE.complete"
 
             if [ ! "$?" = '0' ] ; then
-                rm -rf "$FILE.complete"
+                rm -f "$FILE.complete"
                 error "could not copy transfer-complete file to $TARGETUSER@$TARGETHOST:$TARGETDIR"
             fi
 
 
             # Clean up
             rm -rf "$FILE"
-            rm -rf "$FILE.complete"
+            rm -f "$FILE.complete"
         fi
     fi
 done
