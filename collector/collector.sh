@@ -97,7 +97,7 @@ fi
 
 # Make sure the queue directory is readable
 if [ ! -r "$QUEUEDIR" ] ; then
-    error "could not read from queue directory doesntexist"
+    error "could not read from queue directory $QUEUEDIR"
 fi
 
 # Set the target
