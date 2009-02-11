@@ -34,7 +34,8 @@ getdir() {
 oneTimeSetUp() {
     mkdir testbin
 
-    export PATH="`pwd`/testbin:$PATH"
+    PATH="`pwd`/testbin:$PATH"
+    export PATH
     DIR="`pwd`/testtmp/"
 
     cat > testbin/scp << EOF
