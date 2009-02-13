@@ -1,4 +1,16 @@
 #summary Design of the cronwatch processor
 #labels Phase-Design,Processor
 
-= Phase 1 Design =
+= Command Line Parameters =
+ * -c
+  * Global configuration file
+
+= Configuration File Directives =
+ * Main
+  * queuedir
+   * 
+   * Default: /var/lib/cronwatch/collector
+  * outputdir
+ * Templates
+
+= Phase 1 Class Design =
