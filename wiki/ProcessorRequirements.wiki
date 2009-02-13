@@ -1,0 +1,5 @@
+#summary Requirements from the cronwatch processor
+#labels Phase-Requirements,Processor
+
+= Phase 1 Requirements =
+In phase 1, the processor should work through a cronwatch queue and produce a single report for each job.
