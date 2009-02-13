@@ -20,6 +20,7 @@
      * Global only
      * Directory where the templates are stored
      * Default: /var/lib/cronwatch/template
-   
+ * jobdefaults
+   * 
 
 = Phase 1 Class Design =
