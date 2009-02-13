@@ -8,12 +8,18 @@
 = Configuration File Directives =
  * main
   * queuedir
+   * Global only
    * Directory where the collector puts stuff
    * Default: /var/lib/cronwatch/collector
   * outputdir
+   * Global only
    * Directory where the processor stores it's finished output files
    * Default: /var/lib/cronwatch/reports
  * templates
-   * 
+   * templatedir
+     * Global only
+     * Directory where the templates are stored
+     * Default: /var/lib/cronwatch/template
+   
 
 = Phase 1 Class Design =
