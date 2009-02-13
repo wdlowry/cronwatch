@@ -24,7 +24,7 @@
  # Read and handle command line parameters
  # Read and handle command line arguments
  # Test the connection and exit, if -t is specified
- # Generate a (hopefully) unique prefix (hostname_PID_)
+ # Generate a (hopefully) unique prefix (hostname_PID`_`)
  # For each directory in the queue directory
   # If a lock file exists, skip this directory
   # Copy the directory to the target directory
