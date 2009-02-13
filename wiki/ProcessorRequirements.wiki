@@ -6,9 +6,10 @@ In phase 1, the processor should work through a cronwatch queue and produce a si
 
  * Accepts these command line parameters
   * -c Config file
- * Accepts these global configuration options
-  * queuedir: Directory where collector uploads the files
-  * outputdir: Directory where the reports are stored
-  * templatedir: Directory where templates are stored
-  * defaulttempate: 
- * 
+ * Accepts global configuration options
+  * These options will be listed in the design documentation
+ * Handles each completed job in the queue directory
+  * Reads in the status, output, and configuration
+  * Applies the configuration
+  * Processes the success, warning, and failure conditions for the job
+  * Produces a templated output file for each job
