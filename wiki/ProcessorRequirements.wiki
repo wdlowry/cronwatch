@@ -3,3 +3,12 @@
 
 = Phase 1 Requirements =
 In phase 1, the processor should work through a cronwatch queue and produce a single report for each job.
+
+ * Accepts these command line parameters
+  * -c Config file
+ * Accepts these global configuration options
+  * queuedir: Directory where collector uploads the files
+  * outputdir: Directory where the reports are stored
+  * templatedir: Directory where templates are stored
+  * defaulttempate: 
+ * 
