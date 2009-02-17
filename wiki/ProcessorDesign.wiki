@@ -29,5 +29,8 @@
 === Properties ===
 
 == ConfigSection ==
-ConfigSection is actually
-=== 
+ConfigSection is actually part of Config, but it's split out here for easier formatting.
+
+=== Methods ===
+ * add_configurable
+  * Add a possible
