@@ -24,3 +24,10 @@
    * 
 
 = Phase 1 Class Design =
+
+== Config ==
+=== Properties ===
+
+== ConfigSection ==
+ConfigSection is actually
+=== 
