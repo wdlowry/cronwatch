@@ -32,6 +32,8 @@
 ConfigSection is actually part of Config, but it's split out here for easier formatting.
 
 === Properties ===
+ * __settings
+  * List of dictionaries with settings
 
 === Methods ===
  * add_setting
