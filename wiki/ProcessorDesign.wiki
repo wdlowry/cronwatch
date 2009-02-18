@@ -25,6 +25,12 @@
 
 = Phase 1 Class Design =
 
+== Error ===
+Base exception class
+
+== SettingExistsError ==
+The configuration setting has already been defined
+
 == Config ==
 === Properties ===
 
