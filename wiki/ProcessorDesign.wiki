@@ -40,7 +40,7 @@ ConfigSection is actually part of Config, but it's split out here for easier for
   * Add a possible configurable setting
   * Parameters
    * name: non-empty string containing the name of the setting
-   * type: one of 'string', 'int', 'float', 'boolean', 'list'
+   * type: one of 'string', 'int', 'float', 'boolean', 'list' (defaults to 'string')
    * default: default value (defaults to None)
   * Exceptions
    * Throws Exception if the setting already exists
