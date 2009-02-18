@@ -33,7 +33,7 @@
 {{{
 #!/usr/bin/python
 # $Id$
-# vim:ft=sh:sw=4:sta:et
+# vim:ft=python:sw=4:sta:et
 #
 # FILENAME - DESCRIPTION
 # Copyright (C) YYYY NAMEOFAUTHOR < EMAIL >
