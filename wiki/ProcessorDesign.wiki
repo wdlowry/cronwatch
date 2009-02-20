@@ -30,8 +30,19 @@ Config defines a class for holding configuration information
 
 === Methods ===
  * add_section
- *
-
+  * Adds a possible section to the configuration
+  * Parameters
+   * name: Name of the section
+   * global_only: Sets global_only property for section (defaults to False)
+  * Exceptions
+   * Throws SectionExistsError if the section already exists
+ * get
+  * Parameters
+   * name: Name of the section
+  * Returns
+   * The specified section
+  * Exceptions
+   * Throws SectionNameInvalidError if the setting does not exist
 
 == ConfigSection ==
 ConfigSection is actually part of Config, but it's split out here for easier formatting.
