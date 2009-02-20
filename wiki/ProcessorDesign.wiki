@@ -53,21 +53,21 @@ ConfigSection is actually part of Config, but it's split out here for easier for
    * name: name of the setting
   * Returns the type of the setting
   * Exceptions
-   * Throws SettingNameInvalidError if the setting is invalid
+   * Throws SettingNameInvalidError if the setting does not exist
  * get
   * Get a configurable setting
   * Parameters
    * name: name of the setting
   * Returns the value of the specified setting
   * Exceptions
-   * Throws SettingNameInvalidError if the setting invalid
+   * Throws SettingNameInvalidError if the setting does not exist
  * set
   * Set a configurable setting
   * Parameters
    * name: name of setting
    * val: new value of setting
   * Exceptions
-   * Throws Exception if the setting does not exist
+   * Throws SettingNameInvalidError if the setting does not exist
  
  * Note: get and set are bound to __getattr__ and __setattr__
 
