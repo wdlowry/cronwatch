@@ -25,19 +25,26 @@
 
 = Phase 1 Class Design =
 
-== Error ===
-Base exception class
-
-== SettingExistsError ==
-The configuration setting has already been defined
-
 == Config ==
-=== Properties ===
+Config defines a class for holding configuration information
+
+=== Methods ===
+ * add_section
+ *
+
 
 == ConfigSection ==
 ConfigSection is actually part of Config, but it's split out here for easier formatting.
 
+=== Properties ===
+ * global_only
+  * Is this section only configurable in the global configuration
+
 === Methods ===
+ * __init__
+  * Constructor
+  * Parameters
+   * global_only: Sets the global_only property (defaults to False)
  * add_setting
   * Add a possible configurable setting
   * Parameters
