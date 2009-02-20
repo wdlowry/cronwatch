@@ -30,7 +30,7 @@ Config defines a class for holding configuration information
 
 === Methods ===
  * add_section
-  * Adds a possible section to the configuration
+  * Adds a configuration section
   * Parameters
    * name: Name of the section
    * global_only: Sets global_only property for section (defaults to False)
