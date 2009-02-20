@@ -51,8 +51,15 @@ ConfigSection is actually part of Config, but it's split out here for easier for
    * type: one of 'string', 'int', 'float', 'boolean', 'list' (defaults to 'string')
    * default: default value (defaults to None)
   * Exceptions
-   * Throws Exception if the setting already exists
-   * Throws an Exception if the setting type is invalid
+   * Throws SettingExistsError if the setting already exists
+   * Throws an SettingTypeInvalidError if the setting type is invalid
+ * get_type
+  * Get the type of a setting
+  * Parameters
+   * name: name of the setting
+  * Returns the type of the setting
+  * Exceptions
+   * Throws SettingInvalidName if the setting is invalid
  * set
   * Set a configurable setting
   * Parameters
@@ -68,9 +75,5 @@ ConfigSection is actually part of Config, but it's split out here for easier for
   * Exceptions
    * Throws Exception if the setting does not exist
  * Note: get and set are bound to __getattr__ and __setattr__
- * get_type
-  * Get the type of a setting
-  * Parameters
-   * name: name of the setting
-  * 
+
  
