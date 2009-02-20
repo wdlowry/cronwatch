@@ -37,12 +37,6 @@ The configuration setting has already been defined
 == ConfigSection ==
 ConfigSection is actually part of Config, but it's split out here for easier formatting.
 
-=== Properties ===
- * __setting_types
-  * Dictionary of the setting types
- * __setting_defaults
-  * Dictionary of the setting defaults
-
 === Methods ===
  * add_setting
   * Add a possible configurable setting
