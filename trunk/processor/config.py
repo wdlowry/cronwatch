@@ -26,11 +26,17 @@ class Error(Exception):
     def __init__(self, msg = ''):
         Exception.__init__(self, msg)
 
-class SettingExistsError(Error):
-    '''Raised when a setting by that name has already been defined'''
+class NameExistsError(Error):
+    '''Raised when a entity by that name has already been defined'''
 
     def __init__(self, setting):
-        Error.__init__(self, 'Setting already defined: %s' % (setting))
+        Error.__init__(self, 'Already defined: %s' % (setting))
+
+class NameInvalidError(Error):
+    '''Raised when a name is invalid'''
+
+    def __init__(self, name):
+        Error.__init__(self, 'Does not exist: %s' % (name))
 
 class SettingTypeInvalidError(Error):
     '''Raised when a setting type is invalid'''
@@ -38,23 +44,18 @@ class SettingTypeInvalidError(Error):
     def __init__(self, type):
         Error.__init__(self, 'Setting has invalid type: %s' % (type))
 
-class SettingNameInvalidError(Error):
-    '''Raised when a setting name is invalid'''
-
-    def __init__(self, name):
-        Error.__init__(self, 'Setting does not exist: %s' % (name))
-
-class ConfigSetting(object):
-    def __init__(self):
+class ConfigSection(object):
+    def __init__(self, global_only = False):
         '''Constructor'''
         self.__settings = {}
+        self.global_only = global_only
 
     def add_setting(self, name, type = 'string', default = None):
         '''Add a possible configurable setting'''
 
         # Check to make sure the setting isn't defined already
         if self.__settings.has_key(name):
-            raise SettingExistsError(name)
+            raise NameExistsError(name)
 
         if type not in ['string', 'int', 'float', 'boolean', 'list']:
             raise SettingTypeInvalidError(type)
@@ -69,7 +70,7 @@ class ConfigSetting(object):
 
         # Check to make sure the setting is valid
         if not self.__settings.has_key(name):
-            raise SettingNameInvalidError(name)
+            raise NameInvalidError(name)
 
         return self.__settings[name]['type']
 
@@ -78,7 +79,7 @@ class ConfigSetting(object):
 
         # Check to make sure the setting is valid
         if not self.__settings.has_key(name):
-            raise SettingNameInvalidError(name)
+            raise NameInvalidError(name)
 
         return self.__settings[name]['val']
 
@@ -87,7 +88,7 @@ class ConfigSetting(object):
 
         # Check to make sure the setting is valid
         if not self.__settings.has_key(name):
-            raise SettingNameInvalidError(name)
+            raise NameInvalidError(name)
         
         self.__settings[name]['val'] = val
 
@@ -99,4 +100,31 @@ class ConfigSetting(object):
     def __setitem__(self, name, val):
         '''Set a value directly'''
         self.set(name, val)
+
+class Config(object):
+    def __init__(self):
+        '''Constructor'''
+        self.__sections = {}
+
+    def add_section(self, name, global_only = False):
+        '''Adds a configuration section'''
+
+        if self.__sections.has_key(name):
+            raise NameExistsError(name)
+
+        self.__sections[name] = ConfigSection(global_only)
+
+    def get(self, name):
+        '''Returns a section'''
+
+        if not self.__sections.has_key(name):
+            raise NameInvalidError(name)
+
+        return self.__sections[name]
+
+    def __getitem__(self, name):
+        '''Get a value directly'''
+        return self.get(name)
+
+
 
