@@ -59,7 +59,7 @@ ConfigSection is actually part of Config, but it's split out here for easier for
    * name: name of the setting
   * Returns the type of the setting
   * Exceptions
-   * Throws SettingInvalidName if the setting is invalid
+   * Throws SettingNameInvalidError if the setting is invalid
  * set
   * Set a configurable setting
   * Parameters
