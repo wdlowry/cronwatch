@@ -43,6 +43,7 @@ Config defines a class for holding configuration information
    * The specified section
   * Exceptions
    * Throws SectionNameInvalidError if the setting does not exist
+ * Note: get is bound to `__getitem__`
 
 == ConfigSection ==
 ConfigSection is actually part of Config, but it's split out here for easier formatting.
@@ -87,6 +88,6 @@ ConfigSection is actually part of Config, but it's split out here for easier for
   * Exceptions
    * Throws SettingNameInvalidError if the setting does not exist
  
- * Note: get and set are bound to __getitem__ and __setitem__
+ * Note: get and set are bound to `__getitem__` and `__setitem__`
 
  
