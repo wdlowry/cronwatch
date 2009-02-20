@@ -69,6 +69,6 @@ ConfigSection is actually part of Config, but it's split out here for easier for
   * Exceptions
    * Throws SettingNameInvalidError if the setting does not exist
  
- * Note: get and set are bound to __getattr__ and __setattr__
+ * Note: get and set are bound to __getitem__ and __setitem__
 
  
