@@ -20,3 +20,4 @@
 || || stdout: route stderr to stdout and handle it as such || || 
 || || ignore: ignore stderr, but still record it in the log || || 
 || exit_codes || an exit code or list of exit codes that are acceptable. Other exit codes will result in an error || 0 ||
+|| 
