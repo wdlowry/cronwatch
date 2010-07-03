@@ -1,6 +1,0 @@
-#summary Various todo items for different versions
-
-=For Initial Release=
- * Add mechanism to specify default paths while building (makefile, configure script?)
- * Make awk/wrapper generation work on target platforms
- * Make tests run on target platforms
