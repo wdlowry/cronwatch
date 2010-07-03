@@ -10,3 +10,7 @@
   * Should set these defaults
     * Configuration file = /etc/cronwatch.conf
     * Tag = Basename of the cron job
+  * Should accept these configuration options
+    * 
+    *
+    * 
