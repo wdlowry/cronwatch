@@ -20,4 +20,6 @@
 || || stdout: route stderr to stdout and handle it as such || || 
 || || ignore: ignore stderr, but still record it in the log || || 
 || exit_codes || an exit code or list of exit codes that are acceptable. Other exit codes will result in an error || 0 ||
-|| 
+|| email || a e-mail address to send output to || root ||
+|| email_maxsize || the maximum size of output to send in an e-mail. If everything should be sent, then email_maxlines should be set to -1 || 4096 ||
+|| email_success || specifies whether to send an e-mail when there were no failures || False ||
