@@ -11,10 +11,12 @@
     * Configuration file = /etc/cronwatch.conf
     * Tag = Basename of the cron job
   * Should accept these configuration options for each job
-    * required: a regex or list of regexes that must be found in the output for the job to be considered successful. The default is for required to be empty.
-    * blacklist: a regex or list of regexes that will result in an error if found in the output. The default is 
-    * whitelist: a regex or list of regexes that will be used as a default deny list, i.e. if a line is found in the output that does not match any of the whitelist regexes, then it will result in an error
-    * stderr: a string that specifies how to handle output to stderr. Possible values are:
-      * error: any output to stderr will result in an error
-      * stdout: route stderr to stdout and process it with the same rules
-      * ignore: ignore stderr, but still record it in the log
+|| *Name* || *Description* || *Default* ||
+||  required || a regex or list of regexes that must be found in the output for the job to be considered successful || None ||
+|| blacklist || a regex or list of regexes that will result in an error if found in the output || .* ||
+|| whitelist ||  a regex or list of regexes that will be used as a default deny list, i.e. if a line is found in the output that does not match any of the whitelist regexes, then it will result in an error || None ||
+|| stderr || a string that specifies how to handle output to stderr. Possible values are:|| error ||
+|| || error: any output to stderr will result in an error || ||
+|| || stdout: route stderr to stdout and handle it as such || || 
+|| || ignore: ignore stderr, but still record it in the log || || 
+|| exit_codes || an exit code or list of exit codes that are acceptable. Other exit codes will result in an error || 0 ||
