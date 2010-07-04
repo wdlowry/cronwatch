@@ -6,6 +6,7 @@
   * Should accept these command line options
     * -c, --config Set the configuration file
     * -t, --tag Set the "tag" (specifies the configuration stanza to use and the default the log file)
+    * -h, --usage Show usage information
   * Should require an executable with optional arguments
   * Should set these defaults
     * Configuration file = /etc/cronwatch.conf
@@ -27,6 +28,7 @@
 || logfile_cleanup || the number of days after which log files will be deleted || None ||
 
   * Should require the log file to be writeable
-
+  * Should run the specified program
+  * Should capture any output
 = Future Possible Requirements =
 * Should kill the running job after a timeout has been reached
