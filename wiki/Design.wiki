@@ -1,0 +1,39 @@
+#summary Basic design information
+#labels Phase-Design
+
+= Program Flow =
+
+  # Parse command line arguments
+    * -c Config file
+    * -t Tag
+    * -h Usage
+  # Check for a argument
+    * Fail with usage if nothing was specified
+  # Read in config (default: /etc/cronwatch.conf)
+    * If no config file is specified, run with defaults
+    * If -c is specified, exit with error if can't read the config file
+  # Run program
+    * If can't run, flag error
+    * Capture stdout, stderr
+    * Null route stdin
+    * stderr can be routed to stdout
+  # Process stdout
+    * Apply rules to stdout
+        * Required regex(es) must be in the input
+        * Blacklist regex(es) flag error if found
+        * Whitelist regex(es) flag error if a line doesn't match
+    * Stderr is handled differently
+      * If stderr is configured as error, flag error
+      * If stderr is routed to stdout, ignore since it will be handled as stdout
+      * If stderr is set to ignore, then it will be ignored
+    * Exit codes
+        * Required exit code must be set
+        * 
+  # Store logs
+    * Note: we may need to buffer this somehow, because if we wait until the program exits and we get killed, then we're going to lose the logs
+  # Report errors
+  # Clean up old logs
+
+
+= Basic Usage =
+* * * * * root cronwatch -c job.conf -t tag /usr/local/bin/myjob -c 1 parm 1
