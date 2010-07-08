@@ -16,19 +16,14 @@
     * If can't run, flag error
     * Capture stdout, stderr
     * Null route stdin
-    * stderr can be routed to stdout
+    * stderr is routed to stdout
   # Process stdout
-    * Apply rules to stdout
+    * Apply rules to output
         * Required regex(es) must be in the input
         * Blacklist regex(es) flag error if found
         * Whitelist regex(es) flag error if a line doesn't match
-    * Stderr is handled differently
-      * If stderr is configured as error, flag error
-      * If stderr is routed to stdout, ignore since it will be handled as stdout
-      * If stderr is set to ignore, then it will be ignored
     * Exit codes
         * Required exit code must be set
-        * 
   # Store logs
     * Note: we may need to buffer this somehow, because if we wait until the program exits and we get killed, then we're going to lose the logs
   # Report errors
