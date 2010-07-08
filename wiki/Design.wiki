@@ -31,7 +31,9 @@
 
 
 = Basic Usage =
+{{{
 * * * * * root cronwatch -c job.conf -t tag /usr/local/bin/myjob -c 1 parm 1
+}}}
 
 
 = Design Decisions =
