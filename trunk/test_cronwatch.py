@@ -21,6 +21,7 @@
 
 import unittest
 import cronwatch
+import tempfile
 
 ###############################################################################
 # Test Helper Classes
@@ -101,7 +102,6 @@ class TestCommandLine(TestBase):
 class TestRun(TestBase):
     '''Test the run() function'''
 
-    # (output_handle, return_code) = run(args)
     def test_run_error(self):
         '''Should throw an exception when there's an error running the 
            executable'''
@@ -136,6 +136,46 @@ class TestRun(TestBase):
         self.assertEquals(-1, r)
         o = o.read()
         self.assertEquals('', o)
+
+class TestFilterText(TestBase):
+    '''Test the filter_text function'''
+    
+    # results = filter_text (regex, fh)
+    # results = { 'regex1': [result lines], 'regex2', [result lines] }
+    # regex can be a single regex or list
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryFile()
+
+    def tearDown(self):
+        self.tmp.close()
+
+    def write(self, contents):
+        '''Write contents to the temporary file'''
+        self.tmp.write(contents)
+        self.tmp.flush()
+        self.tmp.seek(0)
+
+    def test_simple(self):
+        '''Should find the lines with the search expression'''
+        self.write('one\ntwo\nthree\n')
+        r = cronwatch.filter_text('e', self.tmp)
+        self.assertEqual({'e': [0, 2]}, r)
+
+    def test_complex(self):
+        '''Should accept a list of regexes'''
+        self.write('one\ntwo\nthree\n')
+        r = cronwatch.filter_text(['one', 'o', 'none'], self.tmp)
+        self.assertEqual({'one': [0], 'o': [0, 1], 'none': []}, r) 
+
+    def test_bad_regex(self):
+        '''Should throw an error if the the regex is bad'''
+        self.assertRaisesError(cronwatch.Error,
+                'invalid regex "(": unbalanced parenthesis',
+                cronwatch.filter_text, '(', self.tmp)
+
+class TestWatch(TestBase):
+    '''Test the watch() function'''
 
 
 if __name__ == '__main__':

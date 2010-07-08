@@ -1,5 +1,8 @@
 CHANGEFILES=cronwatch.py test_cronwatch.py
 
+clean:
+	rm -rf work
+
 test:
 	python test_cronwatch.py
 
