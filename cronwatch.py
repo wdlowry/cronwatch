@@ -20,7 +20,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
+import os
+import signal
 from optparse import OptionParser
+import subprocess
+import tempfile
+import time
 
 ###############################################################################
 # Exception class(es)
@@ -36,6 +41,37 @@ class Error(Exception):
 ###############################################################################
 # Helper functions
 ###############################################################################
+def run(args, timeout = -1):
+    '''Run an executable
+    
+       Returns a tuple with a handle to the output and the error code'''
+
+    # Create a temporary file for the output
+    output_file = tempfile.TemporaryFile()
+
+    try:
+        process = subprocess.Popen(args, stdout = output_file,
+                                   stderr = subprocess.STDOUT,
+                                   stdin = open(os.devnull))
+        if timeout > -1:
+            time.sleep(timeout)
+            os.kill(process.pid, signal.SIGTERM)
+            return_code = -1
+
+        else:
+            return_code = process.wait()
+
+    except Exception, e:
+        raise Error('could not run %s: %s' % (args[0], str(e)))
+
+    # I'm not sure if the flush is needed, but better safe than sorry
+    output_file.flush()
+
+    # The seek is needed
+    output_file.seek(0)
+
+    return (output_file, return_code)
+
 
 ###############################################################################
 # Watch function
