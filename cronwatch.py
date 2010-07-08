@@ -26,6 +26,7 @@ from optparse import OptionParser
 import subprocess
 import tempfile
 import time
+import re
 
 ###############################################################################
 # Exception class(es)
@@ -71,6 +72,35 @@ def run(args, timeout = -1):
     output_file.seek(0)
 
     return (output_file, return_code)
+
+def filter_text(rx, fh):
+    '''Search file object fh for the rx(es) in rx'''
+
+    # Convert to a list if it isn't one
+    if not isinstance(rx, list):
+        rx = [rx]
+
+    # Create a working dict with the hashes
+    rxes = {}
+    results = {}
+    for r in rx:
+        try:
+            rxes[r] = re.compile(r)
+        except Exception, e:
+            raise Error('invalid regex "%s": %s' % (r, str(e)))
+
+        results[r] = []
+
+    # Cycle through the lines and try each regex against it
+    i = 0 
+    for line in fh:
+        for r in rxes:
+            if rxes[r].search(line) != None:
+                results[r].append(i)
+        i += 1
+
+    return results
+        
 
 
 ###############################################################################
