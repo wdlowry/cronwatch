@@ -98,5 +98,45 @@ class TestCommandLine(TestBase):
                                'missing command line argument: executable',
                                cronwatch.main, ['cronwatch'])
 
+class TestRun(TestBase):
+    '''Test the run() function'''
+
+    # (output_handle, return_code) = run(args)
+    def test_run_error(self):
+        '''Should throw an exception when there's an error running the 
+           executable'''
+        self.assertRaisesError(cronwatch.Error,
+            'could not run missing: [Errno 2] No such file or directory',
+            cronwatch.run, ['missing'])
+
+    def test_simple_output(self):
+        '''Should return the output'''
+
+        (o, r) = cronwatch.run(['./test_script.sh', 'simple'])
+        
+        self.assertEquals(10, r)
+        o = o.read()
+        self.assertEquals('stdout\nstderr\nstdout again\n', o)
+
+    def test_stdin(self):
+        '''Should close stdin just to be safe'''
+
+        # This will hang if something is not done about stdin
+        (o, r) = cronwatch.run(['./test_script.sh', 'read'])
+        
+        self.assertEquals(0, r)
+        o = o.read()
+        self.assertEquals('\n', o)
+
+    def test_timeout(self):
+        '''Should timeout and terminate the process'''
+
+        (o, r) = cronwatch.run(['./test_script.sh', 'timeout'], 0)
+        
+        self.assertEquals(-1, r)
+        o = o.read()
+        self.assertEquals('', o)
+
+
 if __name__ == '__main__':
     unittest.main()
