@@ -20,6 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import unittest
+import cronwatch
 
 ###############################################################################
 # Test Helper Classes
@@ -53,6 +54,35 @@ class TestBase(unittest.TestCase):
         except exception, e:
             self.assertEqual(str(e).split(delimiter)[0], message)
 
+    def start_capture(self):
+        '''Start stdout/stderr capture'''
+        if self._capture:
+            return
 
+        self._capture = True
+        self._stdout_str = StringIO.StringIO()
+        self._stderr_str = StringIO.StringIO()
+        self._stdout_old = sys.stdout
+        self._stderr_old = sys.stderr
+        sys.stdout = self._stdout_str
+        sys.stderr = self._stderr_str
+
+    def stop_capture(self):
+        '''Stop stdout/stderr capture and return (stdout, strerr)'''
+        if not self._capture:
+            return
+        self._capture = False
+        stdout = self._stdout_str.getvalue()
+        stderr = self._stderr_str.getvalue()
+        sys.stdout = self._stdout_old
+        sys.stderr = self._stderr_old
+        self._stdout_str.close()
+        self._stderr_str.close()
+
+        return (stdout, stderr)
+
+###############################################################################
+# Basic functionality tests
+###############################################################################
 if __name__ == '__main__':
     unittest.main()
