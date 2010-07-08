@@ -21,7 +21,6 @@
 || email_maxsize || the maximum size of output to send in an e-mail. If everything should be sent, then email_maxlines should be set to -1 || 4096 ||
 || email_success || specifies whether to send an e-mail when there were no failures || False ||
 || logfile_filename || the template for the log file || /var/log/cronwatch/%TAG%-%Y%m%d%h%m.log ||
-|| logfile_cleanup || the number of days after which log files will be deleted || None ||
 
   * Should require the log file to be writeable
   * Should run the specified program
