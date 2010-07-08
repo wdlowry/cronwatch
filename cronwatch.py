@@ -18,3 +18,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+from optparse import OptionParser
+import sys
+
+def main(argv):
+    '''Put the main functionality in a function so it's easier to write test cases for'''
+    
+    # Handle command line arguments
+
+if __name__ == '__main__':
+    main(sys.argv)
+
