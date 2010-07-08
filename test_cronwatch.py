@@ -82,7 +82,21 @@ class TestBase(unittest.TestCase):
         return (stdout, stderr)
 
 ###############################################################################
-# Basic functionality tests
+# Cronwatch functionality tests
 ###############################################################################
+class TestCommandLine(TestBase):
+    '''Test the command line functionality
+       
+       Note: The command line options will not be tested. See the comment for
+             main().'''
+
+    def test_empty_command_line(self):
+        '''Should raise an error if the executable is missing from the command
+           line'''
+
+        self.assertRaisesError(cronwatch.Error,
+                               'missing command line argument: executable',
+                               cronwatch.main, ['cronwatch'])
+
 if __name__ == '__main__':
     unittest.main()
