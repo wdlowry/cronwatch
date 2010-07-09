@@ -44,6 +44,97 @@ class SectionError(Error):
 class ConfigError(Error):
     pass
 
+###############################################################################
+# SimpleConfig Classes
+###############################################################################
+class SimpleConfigSetting(object):
+    '''Class for holding the configuration settings for a section'''
+    def __init__(self, value = None, auto_value = True):
+        self.set(value, auto_value)
+
+    def set(self, value, auto_value = True):
+        '''Set the value'''
+        if auto_value:
+            self.__value = SimpleConfigSetting.auto_value(value)
+        else:
+            self.__value = value
+
+        self.__raw = value
+
+    def get(self, raw = False):
+        '''Get the value'''
+        if raw:
+            return self.__raw
+
+        return self.__value
+
+    def auto_value(raw):
+        '''Determine the type of a value and translate it into a Python type'''
+
+        # Lists are special since each item gets handled individually
+        if isinstance(raw, list):
+            new = []
+            for v in raw:
+                new.append(SimpleConfigSetting.auto_value(v))
+            return new
+        
+        # Only strings can be actually parsed
+        if not isinstance(raw, str): return raw
+        
+        if re.match(r'(?i)(none|null)$', raw): return None
+        if re.match(r'-?[0-9]+$', raw): return int(raw)
+        if re.match(r'(?i)(true|yes|on)$', raw): return True
+        if re.match(r'(?i)(false|no|off)$', raw): return False
+        
+        # We don't know what it is, so return it as is
+        return raw
+        
+    auto_value = staticmethod(auto_value)
+
+class SimpleConfigSection(object):
+    '''Class for holding configuration sections'''
+
+    def __init__(self, settings = {}, auto_value = True, defaults = None):
+        self.__dict__['__settings'] = {}
+
+        if defaults:
+            self.__dict__['__settings'] = copy.deepcopy(
+                    defaults.__dict__['__settings'])
+
+        for s in settings:
+            self.set(s, settings[s], auto_value = auto_value)
+
+    def __get_settings(self):
+        '''Return the private dictionary of settings'''
+        return self.__dict__['__settings']
+
+    def set(self, setting, value, auto_value = True):
+        '''Set the value for a setting'''
+        self.__get_settings()[setting] = SimpleConfigSetting(value,
+                                                       auto_value = auto_value)
+
+    def get(self, setting, raw = False):
+        '''Gets a value for the setting'''
+        if not self.__get_settings().has_key(setting):
+            raise SettingError('invalid setting %s' % setting)
+
+        return self.__get_settings()[setting].get(raw = raw)
+
+    def get_settings(self):
+        '''Get a list of setting names'''
+        settings = self.__get_settings().keys()
+        settings.sort()
+        return settings
+
+    def __getattr__(self, setting):
+        '''Allow accessing settings as attributes of this object'''
+        return self.get(setting)
+
+    def __setattr__(self, setting, value):
+        '''Allow setting values as attributes of this object'''
+        self.set(setting, value)
+
+
 class SimpleConfig(object):
     '''Simple configuration class'''
 
@@ -142,91 +233,3 @@ class SimpleConfig(object):
             for setting in config.get(section).get_settings():
                 self.get(section).set(setting, config.get(section).get(setting))
 
-class SimpleConfigSection(object):
-    '''Class for holding configuration sections'''
-
-    def __init__(self, settings = {}, auto_value = True, defaults = None):
-        self.__dict__['__settings'] = {}
-
-        if defaults:
-            self.__dict__['__settings'] = copy.deepcopy(
-                    defaults.__dict__['__settings'])
-
-        for s in settings:
-            self.set(s, settings[s], auto_value = auto_value)
-
-    def __get_settings(self):
-        '''Return the private dictionary of settings'''
-        return self.__dict__['__settings']
-
-    def set(self, setting, value, auto_value = True):
-        '''Set the value for a setting'''
-        self.__get_settings()[setting] = SimpleConfigSetting(value,
-                                                       auto_value = auto_value)
-
-    def get(self, setting, raw = False):
-        '''Gets a value for the setting'''
-        if not self.__get_settings().has_key(setting):
-            raise SettingError('invalid setting %s' % setting)
-
-        return self.__get_settings()[setting].get(raw = raw)
-
-    def get_settings(self):
-        '''Get a list of setting names'''
-        settings = self.__get_settings().keys()
-        settings.sort()
-        return settings
-
-    def __getattr__(self, setting):
-        '''Allow accessing settings as attributes of this object'''
-        return self.get(setting)
-
-    def __setattr__(self, setting, value):
-        '''Allow setting values as attributes of this object'''
-        self.set(setting, value)
-
-
-class SimpleConfigSetting(object):
-    '''Class for holding the configuration settings for a section'''
-    def __init__(self, value = None, auto_value = True):
-        self.set(value, auto_value)
-
-    def set(self, value, auto_value = True):
-        '''Set the value'''
-        if auto_value:
-            self.__value = SimpleConfigSetting.auto_value(value)
-        else:
-            self.__value = value
-
-        self.__raw = value
-
-    def get(self, raw = False):
-        '''Get the value'''
-        if raw:
-            return self.__raw
-
-        return self.__value
-
-    def auto_value(raw):
-        '''Determine the type of a value and translate it into a Python type'''
-
-        # Lists are special since each item gets handled individually
-        if isinstance(raw, list):
-            new = []
-            for v in raw:
-                new.append(SimpleConfigSetting.auto_value(v))
-            return new
-        
-        # Only strings can be actually parsed
-        if not isinstance(raw, str): return raw
-        
-        if re.match(r'(?i)(none|null)$', raw): return None
-        if re.match(r'-?[0-9]+$', raw): return int(raw)
-        if re.match(r'(?i)(true|yes|on)$', raw): return True
-        if re.match(r'(?i)(false|no|off)$', raw): return False
-        
-        # We don't know what it is, so return it as is
-        return raw
-        
-    auto_value = staticmethod(auto_value)
-        
