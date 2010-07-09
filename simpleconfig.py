@@ -49,13 +49,14 @@ class ConfigError(Error):
 ###############################################################################
 class SimpleConfigSetting(object):
     '''Class for holding the configuration settings for a section'''
-    def __init__(self, value = None, auto_value = True):
-        self.set(value, auto_value)
+    def __init__(self, value = None, auto_type = True):
+        self.auto_type = auto_type
+        self.set(value)
 
-    def set(self, value, auto_value = True):
+    def set(self, value, raw = False):
         '''Set the value'''
-        if auto_value:
-            self.__value = SimpleConfigSetting.auto_value(value)
+        if self.auto_type and not raw:
+            self.__value = SimpleConfigSetting.auto_type(value)
         else:
             self.__value = value
 
@@ -68,14 +69,14 @@ class SimpleConfigSetting(object):
 
         return self.__value
 
-    def auto_value(raw):
+    def auto_type(raw):
         '''Determine the type of a value and translate it into a Python type'''
 
         # Lists are special since each item gets handled individually
         if isinstance(raw, list):
             new = []
             for v in raw:
-                new.append(SimpleConfigSetting.auto_value(v))
+                new.append(SimpleConfigSetting.auto_type(v))
             return new
         
         # Only strings can be actually parsed
@@ -89,12 +90,12 @@ class SimpleConfigSetting(object):
         # We don't know what it is, so return it as is
         return raw
         
-    auto_value = staticmethod(auto_value)
+    auto_type = staticmethod(auto_type)
 
 class SimpleConfigSection(object):
     '''Class for holding configuration sections'''
 
-    def __init__(self, settings = {}, auto_value = True, defaults = None):
+    def __init__(self, settings = {}, auto_type = True, defaults = None):
         self.__dict__['__settings'] = {}
 
         if defaults:
@@ -102,16 +103,16 @@ class SimpleConfigSection(object):
                     defaults.__dict__['__settings'])
 
         for s in settings:
-            self.set(s, settings[s], auto_value = auto_value)
+            self.set(s, settings[s], auto_type = auto_type)
 
     def __get_settings(self):
         '''Return the private dictionary of settings'''
         return self.__dict__['__settings']
 
-    def set(self, setting, value, auto_value = True):
+    def set(self, setting, value, auto_type = True):
         '''Set the value for a setting'''
         self.__get_settings()[setting] = SimpleConfigSetting(value,
-                                                       auto_value = auto_value)
+                                                       auto_type = auto_type)
 
     def get(self, setting, raw = False):
         '''Gets a value for the setting'''
