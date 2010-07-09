@@ -43,6 +43,7 @@ class SectionError(Error):
 
 class ConfigError(Error):
     pass
+
 class SimpleConfig(object):
     '''Simple configuration class'''
 
@@ -56,8 +57,9 @@ class SimpleConfig(object):
     def add(self, section):
         '''Add a section to the configuration'''
         sections = self.__get_sections()
-        if sections.has_key(section):
-            raise SectionError('section %s already exists' % section)
+
+        # Just ignore a duplicate section
+        if sections.has_key(section): return
 
         defaults = None
         if sections.has_key('defaults'):
@@ -79,6 +81,10 @@ class SimpleConfig(object):
 
         return sections[section]
 
+    def delete(self, section):
+        '''Delete a section'''
+        del self.__get_sections()[section]
+
     def get_sections(self):
         '''Return a list of sections'''
         sections = self.__get_sections().keys()
@@ -94,9 +100,9 @@ class SimpleConfig(object):
     def readfp(self, fp):
         '''Read the config in from a file'''
 
-        sections = {}
-
+        config = SimpleConfig()
         section = None
+
         i = 0
         for l in fp:
             i += 1
@@ -107,8 +113,7 @@ class SimpleConfig(object):
             r = re.match(r'^\s*\[\s*([^\]]*?)\s*\]\s*$', l)
             if r:
                 section = r.group(1)
-                if not sections.has_key(r.group(1)):
-                    sections[section] = {}
+                config.add(section)
                 continue
             
             # Check for variables
@@ -117,8 +122,10 @@ class SimpleConfig(object):
                 if section is None:
                     raise ConfigError('section header missing at line %i: %s' %
                                       (i, l))
+                
+                # Handle repeats as lists
 
-                sections[section][r.group(1)] = r.group(2)
+                config.get(section).set(r.group(1), r.group(2))
                 continue
             
             # If we get this far there was a config error
@@ -126,18 +133,16 @@ class SimpleConfig(object):
                     (i, l))
             
         # Write the dict to the object, but first pull out the defaults
-        if sections.has_key('defaults'):
-            for setting in sections['defaults'].keys():
-                self.defaults.set(setting, sections['defaults'][setting])
+        if config.has('defaults'):
+            for setting in config.defaults.get_settings():
+                self.defaults.set(setting, config.defaults.get(setting))
+            config.delete('defaults')
 
-        for section in sections.keys():
-            if not self.has(section):
-                self.add(section)
+        for section in config.get_sections():
+            self.add(section)
             
-            for setting in sections[section].keys():
-                self.get(section).set(setting, sections[section][setting])
-
-
+            for setting in config.get(section).get_settings():
+                self.get(section).set(setting, config.get(section).get(setting))
 
 class SimpleConfigSection(object):
     '''Class for holding configuration sections'''
@@ -207,13 +212,22 @@ class SimpleConfigSetting(object):
     def auto_value(raw):
         '''Determine the type of a value and translate it into a Python type'''
 
+        # Lists are special since each item gets handled individually
+        if isinstance(raw, list):
+            new = []
+            for v in raw:
+                new.append(SimpleConfigSetting.auto_value(v))
+            return new
+        
+        # Only strings can be actually parsed
         if not isinstance(raw, str): return raw
         
         if re.match(r'(?i)(none|null)$', raw): return None
         if re.match(r'-?[0-9]+$', raw): return int(raw)
         if re.match(r'(?i)(true|yes|on)$', raw): return True
         if re.match(r'(?i)(false|no|off)$', raw): return False
-
+        
+        # We don't know what it is, so return it as is
         return raw
         
     auto_value = staticmethod(auto_value)

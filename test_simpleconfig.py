@@ -65,6 +65,11 @@ class TestSimpleConfigSetting(TestBase):
         self.assertEqual('true1', SimpleConfigSetting.auto_value('true1'))
         self.assertEqual('1true', SimpleConfigSetting.auto_value('1true'))
 
+    def test_auto_value_list(self):
+        '''Should work through an list and handle each item'''
+        self.assertEqual(['a', 1, None],
+                         SimpleConfigSetting.auto_value(['a', '1', 'None']))
+
     def test_set_auto(self):
         '''Should set value automatically and set the raw value as well'''
         s = SimpleConfigSetting()
@@ -163,20 +168,12 @@ class TestSimpleConfig(TestBase):
         self.assertEquals(['one', 'two'], s.get_sections())
         self.assertTrue(isinstance(sec, SimpleConfigSection))
 
-    def test_had(self):
+    def test_has(self):
         '''Should check if a section exists'''
         s = SimpleConfig()
         self.assertFalse(s.has('one'))
         s.add('one')
         self.assertTrue(s.has('one'))
-
-    def test_duplicate_section(self):
-        '''Should raise an exception if a section is added twice'''
-        s = SimpleConfig()
-        s.add('one')
-        self.assertRaisesError(SectionError,
-                               'section one already exists',
-                               s.add, 'one')
 
     def test_get(self):
         '''Should return the specified section'''
@@ -185,11 +182,25 @@ class TestSimpleConfig(TestBase):
         sec.set('setting', '1')
         self.assertEquals(1, s.get('one').get('setting'))
 
+    def test_add_duplicate(self):
+        '''Should just ignore a section is if is added a second time'''
+        s = SimpleConfig()
+        s.add('one').set('a', '1')
+        s.add('one')
+        self.assertEquals(1, s.get('one').get('a'))
+
     def test_invalid_section(self):
         '''Should throw an exception is the section is not known'''
         self.assertRaisesError(SectionError, 
                                'invalid section wrong',
                                 SimpleConfig().get, 'wrong')
+
+    def test_del(self):
+        '''Should delete a section'''
+        s = SimpleConfig()
+        s.add('one')
+        s.delete('one')
+        self.assertEquals([], s.get_sections())
 
     def test_getattr(self):
         '''Should implement config.section behavior'''
@@ -340,6 +351,22 @@ class TestSimpleConfig(TestBase):
         s.readfp(f)
 
         self.assertEquals(1, s.one.a)
+
+    def test_readfp_lists(self):
+        '''Should treat multiple instances of variables in the same section
+           as lists'''
+        f = StringIO.StringIO()
+        f.write('[defaults]\n')
+        f.write('a=1\n')
+        f.write('[one]\n')
+        f.write('a=1\n')
+        f.write('a=2\n')
+        f.seek(0)
+        
+        s = SimpleConfig()
+        s.readfp(f)
+
+        #self.assertEquals([1, 2], s.one.a)
 
 if __name__ == '__main__':
     unittest.main()
