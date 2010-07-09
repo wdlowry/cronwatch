@@ -5,7 +5,7 @@ CHANGEFILES=cronwatch.py test_cronwatch.py
 CHANGEFILESCONFIG=simpleconfig.py test_simpleconfig.py
 
 clean:
-	rm -rf work
+	rm -rf work *.pyc
 
 test:
 	python test_cronwatch.py
