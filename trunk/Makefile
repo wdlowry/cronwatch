@@ -1,3 +1,6 @@
+# Makefile for cronwatch
+# $Id$
+
 CHANGEFILES=cronwatch.py test_cronwatch.py
 CHANGEFILESCONFIG=simpleconfig.py test_simpleconfig.py
 
