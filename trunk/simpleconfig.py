@@ -112,8 +112,7 @@ class SimpleConfig(object):
             # Check for section headers
             r = re.match(r'^\s*\[\s*([^\]]*?)\s*\]\s*$', l)
             if r:
-                section = r.group(1)
-                config.add(section)
+                section = config.add(r.group(1))
                 continue
             
             # Check for variables
@@ -122,10 +121,9 @@ class SimpleConfig(object):
                 if section is None:
                     raise ConfigError('section header missing at line %i: %s' %
                                       (i, l))
-                
-                # Handle repeats as lists
-
-                config.get(section).set(r.group(1), r.group(2))
+                s = r.group(1)
+                v = r.group(2)
+                section.set(s, v)
                 continue
             
             # If we get this far there was a config error
