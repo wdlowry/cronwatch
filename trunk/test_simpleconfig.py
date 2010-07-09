@@ -42,33 +42,33 @@ class TestSimpleConfigSetting(TestBase):
         s = SimpleConfigSetting('value')
         self.assertEqual('value', s.get())
 
-    def test_auto_value(self):
+    def test_auto_type(self):
         '''Should return an automatic value'''
-        self.assertEqual(None, SimpleConfigSetting.auto_value('nOne'))
-        self.assertEqual(None, SimpleConfigSetting.auto_value('nUll'))
-        self.assertEqual(-1, SimpleConfigSetting.auto_value('-1'))
-        self.assertEqual(0, SimpleConfigSetting.auto_value('0'))
+        self.assertEqual(None, SimpleConfigSetting.auto_type('nOne'))
+        self.assertEqual(None, SimpleConfigSetting.auto_type('nUll'))
+        self.assertEqual(-1, SimpleConfigSetting.auto_type('-1'))
+        self.assertEqual(0, SimpleConfigSetting.auto_type('0'))
         self.assertEqual(1234567890,
-                         SimpleConfigSetting.auto_value('1234567890'))
-        self.assertEqual(True, SimpleConfigSetting.auto_value('tRue'))
-        self.assertEqual(True, SimpleConfigSetting.auto_value('yEs'))
-        self.assertEqual(True, SimpleConfigSetting.auto_value('oN'))
-        self.assertEqual(False, SimpleConfigSetting.auto_value('fAlse'))
-        self.assertEqual(False, SimpleConfigSetting.auto_value('nO'))
-        self.assertEqual(False, SimpleConfigSetting.auto_value('oFf'))
+                         SimpleConfigSetting.auto_type('1234567890'))
+        self.assertEqual(True, SimpleConfigSetting.auto_type('tRue'))
+        self.assertEqual(True, SimpleConfigSetting.auto_type('yEs'))
+        self.assertEqual(True, SimpleConfigSetting.auto_type('oN'))
+        self.assertEqual(False, SimpleConfigSetting.auto_type('fAlse'))
+        self.assertEqual(False, SimpleConfigSetting.auto_type('nO'))
+        self.assertEqual(False, SimpleConfigSetting.auto_type('oFf'))
 
         # Check to make sure we're checking the whole string
-        self.assertEqual('none1', SimpleConfigSetting.auto_value('none1'))
-        self.assertEqual('1none', SimpleConfigSetting.auto_value('1none'))
-        self.assertEqual('a-1', SimpleConfigSetting.auto_value('a-1'))
-        self.assertEqual('-1a', SimpleConfigSetting.auto_value('-1a'))
-        self.assertEqual('true1', SimpleConfigSetting.auto_value('true1'))
-        self.assertEqual('1true', SimpleConfigSetting.auto_value('1true'))
+        self.assertEqual('none1', SimpleConfigSetting.auto_type('none1'))
+        self.assertEqual('1none', SimpleConfigSetting.auto_type('1none'))
+        self.assertEqual('a-1', SimpleConfigSetting.auto_type('a-1'))
+        self.assertEqual('-1a', SimpleConfigSetting.auto_type('-1a'))
+        self.assertEqual('true1', SimpleConfigSetting.auto_type('true1'))
+        self.assertEqual('1true', SimpleConfigSetting.auto_type('1true'))
 
-    def test_auto_value_list(self):
+    def test_auto_type_list(self):
         '''Should work through an list and handle each item'''
         self.assertEqual(['a', 1, None],
-                         SimpleConfigSetting.auto_value(['a', '1', 'None']))
+                         SimpleConfigSetting.auto_type(['a', '1', 'None']))
 
     def test_set_auto(self):
         '''Should set value automatically and set the raw value as well'''
@@ -84,10 +84,11 @@ class TestSimpleConfigSetting(TestBase):
     def test_no_auto(self):
         '''Should not set a value automatically'''
         s = SimpleConfigSetting()
-        s.set('1', auto_value = False)
+        s.set('1', raw = True)
         self.assertEquals('1', s.get())
 
-        s = SimpleConfigSetting('1', auto_value = False)
+        s = SimpleConfigSetting('1', auto_type = False)
+        s.set('1')
         self.assertEquals('1', s.get())
 
 class TestSimpleConfigSection(TestBase):
@@ -101,7 +102,7 @@ class TestSimpleConfigSection(TestBase):
         self.assertEquals(1, s.get('setting'))
         self.assertEquals('1', s.get('setting', raw = True))
         
-        s.set('setting', '1', auto_value = False)
+        s.set('setting', '1', auto_type = False)
         self.assertEquals('1', s.get('setting'))
 
     def test_constructor(self):
@@ -110,7 +111,7 @@ class TestSimpleConfigSection(TestBase):
         self.assertEquals(1, s.get('a'))
         self.assertEquals(2, s.get('b'))
         
-        s = SimpleConfigSection({'a': '1'}, auto_value = False)
+        s = SimpleConfigSection({'a': '1'}, auto_type = False)
         self.assertEquals('1', s.get('a'))
 
     def test_invalid_setting(self):
