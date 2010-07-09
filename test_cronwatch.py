@@ -19,68 +19,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from test_base import TestBase
 import unittest
 import cronwatch
 import tempfile
-
-###############################################################################
-# Test Helper Classes
-###############################################################################
-class TestBase(unittest.TestCase):
-    '''Base class to add common idioms'''
-
-    def setUp(self):
-        unittest.TestCase.setUp(self)
-        self._capture = False
-
-    def assertRaisesError(self, exception, message, func, *args, **kwargs):
-        '''Similar to assertRaises, but allows a check of the message
-           variable of the exception.'''
-
-        self.assertRaises(exception, func, *args, **kwargs)
-
-        try:
-            func(*args, **kwargs)
-        except exception, e:
-            self.assertEqual(str(e), message)
-    
-    def assertRaisesErrorMulti(self, exception, message, delimiter,
-                               func, *args, **kwargs):
-        '''Similar to assertRaisesError, but allows a check of just the 
-           first line of the exception message.'''
-        self.assertRaises(exception, func, *args, **kwargs)
-
-        try:
-            func(*args, **kwargs)
-        except exception, e:
-            self.assertEqual(str(e).split(delimiter)[0], message)
-
-    def start_capture(self):
-        '''Start stdout/stderr capture'''
-        if self._capture:
-            return
-
-        self._capture = True
-        self._stdout_str = StringIO.StringIO()
-        self._stderr_str = StringIO.StringIO()
-        self._stdout_old = sys.stdout
-        self._stderr_old = sys.stderr
-        sys.stdout = self._stdout_str
-        sys.stderr = self._stderr_str
-
-    def stop_capture(self):
-        '''Stop stdout/stderr capture and return (stdout, strerr)'''
-        if not self._capture:
-            return
-        self._capture = False
-        stdout = self._stdout_str.getvalue()
-        stderr = self._stderr_str.getvalue()
-        sys.stdout = self._stdout_old
-        sys.stderr = self._stderr_old
-        self._stdout_str.close()
-        self._stderr_str.close()
-
-        return (stdout, stderr)
 
 ###############################################################################
 # Cronwatch functionality tests
