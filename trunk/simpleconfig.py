@@ -20,7 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 __all__ = ['Setting', 'Section', 'Config',
-           'InvalidSettingError', 'InvalidSectionError']
+           'InvalidSettingError', 'InvalidSectionError', 'ConfigParseError']
 import re
 import copy
 
@@ -40,6 +40,9 @@ class InvalidSettingError(Error):
 
 class InvalidSectionError(Error):
     '''The specified section is missing'''
+
+class ConfigParseError(Error):
+    '''There was a parse error while reading the configuration file'''
 
 ###############################################################################
 # simpleconfig Classes
@@ -122,6 +125,7 @@ class Section(object):
 
     def get_setting(self, setting):
         '''Gets a value for the setting'''
+        if setting == '__deepcopy__': return None
         if not self.has_setting(setting):
             raise InvalidSettingError('invalid setting: %s' % setting)
         return self.__dict__['__settings'][setting]
@@ -242,6 +246,72 @@ class Config(object):
                 else:
                     raise StopIteration()
         return iter()
+    
+    def apply_config(self, other):
+        '''Apply another configurations config'''
+        assert isinstance(other, Config)
+        
+        for section in other:
+            sec_name = section.get_name()
+            if not self.has_section(sec_name):
+                self.set_section(sec_name, copy.deepcopy(section))
+            else:
+                for setting in section:
+                    set_name = setting.get_name()
+                    self.get_section(sec_name).set_setting(set_name,
+                            copy.deepcopy(setting))
+    
+    def create_from_file(fp):
+        '''Create a config file from a file object'''
+        config = Config()
+        section = 'main'
+    
+        ln = 0
+        for line in fp:
+            ln += 1
+            
+            # Ignore empty line and comments
+            if re.match(r'^\s*(#.*)?$', line): continue
+
+            # Check for section headers
+            r = re.match(r'^\s*\[\s*([^\]]*?)\s*\]\s*$', line)
+            if r:
+                section = r.group(1)
+
+                # Add empty sections
+                if not config.has_section(section):
+                    config.set_section(section, Section())
+                continue
+
+            # Parse settings
+            r = re.match(r'^\s*([^=]*?)\s*=\s*(.*?)\s*$', line)
+            if r:
+                setting = r.group(1)
+                value = r.group(2)
+                
+                # If the setting already exists, append to the array
+                if (config.has_section(section)
+                    and config.get_section(section).has_setting(setting)):
+
+                    # Make it an array if it isn't already
+                    if not isinstance(config.get_setting(section, setting),
+                                      list):
+                        config.get_section(section).get_setting(setting).set(
+                                [config.get_setting(section, setting)])
+                    new_list = config.get_setting(section,setting)
+                    new_list.append(value)
+                    config.get_section(section
+                                      ).get_setting(setting).set(new_list)
+                else:
+                    config.set_setting(section, r.group(1), r.group(2))
+                continue
+
+            # If we get this far there was a config error
+            raise ConfigParseError('could not parse config file at line %i: %s'
+                                   % (ln, line))
+        return config
+
+    create_from_file = staticmethod(create_from_file)
 
     #def readfp(self, fp):
     #    '''Read the config in from a file'''
@@ -255,11 +325,6 @@ class Config(object):
     #        # Ignore empty line and comments
     #        if re.match(r'^\s*(#.*)?$', l): continue
     #        
-    #        # Check for section headers
-    #        r = re.match(r'^\s*\[\s*([^\]]*?)\s*\]\s*$', l)
-    #        if r:
-    #            section = config.add(r.group(1))
-    #            continue
     #        
     #        # Check for variables
     #        r = re.match(r'^\s*([^=]*?)\s*=\s*(.*?)\s*$', l)
