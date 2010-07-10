@@ -322,35 +322,104 @@ class TestConfig(TestBase):
         self.assertEquals('b', sections[1].get_name())
         self.assertEquals('c', sections[2].get_name())
 
+    def test_apply_config(self):
+        '''Should apply a different Config object's config to this one'''
+        c1 = Config()
+        c1.only1.a = 1
+        c1.both.only1 = 1
+        c1.both.both = 2
 
-#    def test_add_duplicate(self):
-#        '''Should just ignore a section is if is added a second time'''
-#        s = Config()
-#        s.add('one').set('a', '1')
-#        s.add('one')
-#        self.assertEquals(1, s.get('one').get('a'))
-#
-#
-#    def test_getattr(self):
-#        '''Should implement config.section behavior'''
-#        s = Config()
-#        s.add('one')
-#        s.add('two')
-#        s.get('one').set('a', '1')
-#        s.get('two').set('b', '2')
-#
-#        self.assertEquals(1, s.one.a)
-#        self.assertEquals(2, s.two.b)
-#
-#    def test_getattr_autocreate(self):
-#        '''Should implement config.section.setting = value behavior'''
-#        s = Config()
-#        s.one.a = '1'
-#        s.two.b = '2'
-#        
-#        self.assertEquals(1, s.one.a)
-#        self.assertEquals(2, s.two.b)
-#
+        c2 = Config()
+        c2.only2.b = 2
+        c2.both.only2 = 3
+        c2.both.both = [4, 5]
+
+        c1.apply_config(c2)
+
+        self.assertEquals(1, c1.only1.a)
+        self.assertEquals(2, c1.only2.b)
+        self.assertEquals(1, c1.both.only1)
+        self.assertEquals(3, c1.both.only2)
+        self.assertEquals([4, 5], c1.both.both)
+
+        # Make sure it was an actual copy
+        c1.only2.a = 10
+        c1.both.both.append(6)
+        self.assertEquals(['b'], c2.only2.get_settings())
+        self.assertEquals([4, 5], c2.both.both)
+
+    def test_create_from_file_empty(self):
+        '''Should create a mostly empty config'''
+        c = Config.create_from_file(StringIO.StringIO())
+        self.assertEquals([], c.get_sections())
+
+    def test_create_from_file_comment(self):
+        '''Should parse comments and blank lines correctly'''
+        f = StringIO.StringIO()
+        f.write('  \t \t  \n')
+        f.write('# This is a comment\n')
+        f.write('    \t # This is a second comment\n')
+        f.seek(0)
+        
+        c = Config.create_from_file(f)
+        self.assertEquals([], c.get_sections())
+
+    def test_create_from_file_parse_error(self):
+        '''Should raise an exception if something can't be understood'''
+        f = StringIO.StringIO()
+        f.write('#This is a comment\n')
+        f.write('error\n')
+        f.seek(0)
+
+        self.assertRaisesError(ConfigParseError,
+                'could not parse config file at line 2: error',
+                Config.create_from_file, f)
+
+    def test_create_from_file_settings(self):
+        '''Should put a couple things in the main section'''
+        f = StringIO.StringIO()
+        f.write('  \t  a  \t  =  \t  a string  \t  \n')
+        f.write('  \t  b b  \t  =  \t  1  \t  \n')
+        f.seek(0)
+        
+        c = Config.create_from_file(f)
+
+        self.assertEquals(['main'], c.get_sections())
+        self.assertEquals(['a', 'b b'], c.main.get_settings())
+        self.assertEquals('a string', c.main.a)
+        self.assertEquals(1, c.get_setting('main', 'b b'))
+
+    def test_create_from_file_section(self):
+        '''Should read in the section headers'''
+        f = StringIO.StringIO()
+        f.write('  \t  [  \t  section  one  \t  ]  \n')
+        f.write('a=1\n')
+        f.write('[two]')
+        f.seek(0)
+
+        c = Config.create_from_file(f)
+
+        self.assertEquals(['section  one', 'two'], c.get_sections())
+        self.assertEquals(['a'], c.get_section('section  one').get_settings())
+        self.assertEquals(1, c.get_setting('section  one', 'a'))
+        self.assertEquals([], c.two.get_settings())
+
+    def test_create_from_file_lists(self):
+        '''Should read create arrays if a setting appears more than once'''
+        f = StringIO.StringIO()
+        f.write('[one]\n')
+        f.write('a=1\n')
+        f.write('[two]\n')
+        f.write('a=1\n')
+        f.write('a=2\n')
+        f.write('a=3\n')
+        f.seek(0)
+
+        c = Config.create_from_file(f)
+
+        self.assertEqual(1, c.one.a)
+        self.assertEqual([1, 2, 3], c.two.a)
+
 #    def test_defaults(self):
 #        '''Should apply the default section settings other sections'''
 #        s = Config()
@@ -361,75 +430,10 @@ class TestConfig(TestBase):
 #        self.assertEquals(1, s.one.a)
 #        self.assertEquals(2, s.one.b)
 #
-#    def test_readfp_parsing_error(self):
-#        '''Should raise an exception if something can't be understood'''
-#        f = StringIO.StringIO()
-#        f.write('#This is a comment\n')
-#        f.write('error\n')
-#        f.seek(0)
-#
-#        self.assertRaisesError(ConfigError,
-#                'could not parse config file at line 2: error',
-#                Config().readfp, f)
 #    
-#    def test_readfp_empty(self):
-#        '''Should create a mostly empty config'''
-#        s = Config()
-#        s.readfp(StringIO.StringIO())
-#        self.assertEquals([], s.get_sections())
 #
-#    def test_readfp_section(self):
-#        '''Should read in the section headers'''
-#        f = StringIO.StringIO()
-#        f.write('  \t  [  \t  section  one  \t  ]  \n')
-#        f.write('[two]')
-#        f.seek(0)
 #
-#        s = Config()
-#        s.readfp(f)
 #
-#        self.assertEquals(['section  one', 'two'], s.get_sections())
-#        self.assertEquals([], s.get('section  one').get_settings())
-#        self.assertEquals([], s.two.get_settings())
-#
-#    def test_readfp_simple(self):
-#        '''Should put a couple things in the main section'''
-#        f = StringIO.StringIO()
-#        f.write('[one]\n')
-#        f.write('  \t  a  \t  =  \t  a string  \t  \n')
-#        f.write('  \t  b b  \t  =  \t  1  \t  \n')
-#        f.seek(0)
-#
-#        s = Config()
-#        s.readfp(f)
-#
-#        self.assertEquals(['one'], s.get_sections())
-#        self.assertEquals(['a', 'b b'], s.one.get_settings())
-#        self.assertEquals('a string', s.one.a)
-#        self.assertEquals(1, s.one.get('b b'))
-#
-#    def test_readfp_missing_section(self):
-#        '''Should raise an error if the first section header is missing'''
-#        f = StringIO.StringIO()
-#        f.write('a=1\n')
-#        f.seek(0)
-#
-#        s = Config()
-#        self.assertRaisesError(ConfigError,
-#                'section header missing at line 1: a=1',
-#                s.readfp, f)
-#
-#    def test_readfp_whitespace_comment(self):
-#        '''Should parse comments and blank lines correctly'''
-#        f = StringIO.StringIO()
-#        f.write('  \t \t  \n')
-#        f.write('# This is a comment\n')
-#        f.write('    \t # This is a second comment\n')
-#        f.seek(0)
-#
-#        s = Config()
-#        s.readfp(f)
-#        self.assertEquals([], s.get_sections())
 #
 #    def test_readfp_defaults(self):
 #        '''Should allow defaults to be set'''
