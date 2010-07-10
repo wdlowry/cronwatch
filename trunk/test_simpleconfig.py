@@ -91,71 +91,71 @@ class TestSetting(TestBase):
         s.set('1')
         self.assertEquals('1', s.get())
 
-#class TestSimpleConfigSection(TestBase):
-#    '''Tests for the SimpleClassSection class'''
-#
-#    def test_get_set(self):
-#        '''Should allow getting and setting via methods'''
-#        s = SimpleConfigSection()
-#        
-#        s.set('setting', '1')
-#        self.assertEquals(1, s.get('setting'))
-#        self.assertEquals('1', s.get('setting', raw = True))
-#        
-#        s.set('setting', '1', auto_type = False)
-#        self.assertEquals('1', s.get('setting'))
-#
-#    def test_constructor(self):
-#        '''Should allow settings in constructor'''
-#        s = SimpleConfigSection({'a': '1', 'b': '2'})
-#        self.assertEquals(1, s.get('a'))
-#        self.assertEquals(2, s.get('b'))
-#        
-#        s = SimpleConfigSection({'a': '1'}, auto_type = False)
-#        self.assertEquals('1', s.get('a'))
-#
-#    def test_invalid_setting(self):
-#        '''Should throw an exception is the setting is not known'''
-#        self.assertRaisesError(SettingError, 
-#                               'invalid setting wrong',
-#                                SimpleConfigSection().get, 'wrong')
-#
-#    def test_getattr(self):
-#        '''Should implement section.setting behavior'''
-#        s = SimpleConfigSection({'a': '1', 'b': '2'})
-#        self.assertEquals(1, s.a)
-#        self.assertEquals(2, s.b)
-#
-#    def test_setattr(self):
-#        '''Should implement section.setting = value behavior'''
-#        s = SimpleConfigSection()
-#        s.a = '1'
-#        self.assertEquals(1, s.get('a'))
-#
-#    def test_get_settings(self):
-#        '''Should return a list of setting names'''
-#        s = SimpleConfigSection({'a': '1', 'b': '2'})
-#        self.assertEquals(['a', 'b'], s.get_settings())
-#
-#    def test_defaults(self):
-#        '''Should accept another section to set up defaults in the
-#           constructor'''
-#        s = SimpleConfigSection({'a': '1', 'b': '2'})
-#        c = SimpleConfigSection(defaults = s)
-#        self.assertEquals(c.get('a'), 1)
-#        self.assertEquals(c.get('b'), 2)
-#
-#    def test_defaults_deep_copy(self):
-#        '''Should make a deep copy of the defaults so the main one doesn't get
-#           changed'''
-#        s = SimpleConfigSection({'c': [1, 2]})
-#        c = SimpleConfigSection(defaults = s)
-#        c.c.append(3)
-#        
-#        self.assertEquals(s.get('c'), [1, 2])
-#        self.assertEquals(c.get('c'), [1, 2, 3])
-#
-#
+class TestSection(TestBase):
+    '''Tests for the Section class'''
+
+    def test_set_get(self):
+        '''Should allow setting and getting via methods'''
+        s = Section()
+        s.set_setting('setting', Setting('1'))
+        self.assertEquals(1, s.get_setting('setting').get())
+    
+    def test_has_setting(self):
+        '''Should tell whether a setting exists'''
+        s = Section()
+        s.set_setting('setting', Setting('1'))
+        self.assertTrue(s.has_setting('setting'))
+
+    def test_del_setting(self):
+        '''Should delete a setting'''
+        s = Section()
+        s.set_setting('setting', Setting('1'))
+        s.del_setting('setting')
+        self.assertFalse(s.has_setting('setting'))
+
+    def test_get_setting_missing(self):
+        '''Should raise an exception if the setting does not exist'''
+        s = Section()
+        self.assertRaisesError(InvalidSettingError,
+                               'invalid setting: set',
+                               s.get_setting, 'set')
+
+    def test_del_setting_missing(self):
+        '''Should raise an exception if the setting does not exist'''
+        s = Section()
+        self.assertRaisesError(InvalidSettingError,
+                               'invalid setting: set',
+                               s.del_setting, 'set')
+
+    def test_get_settings(self):
+        '''Return a list of settings'''
+        s = Section()
+        s.set_setting('c', Setting('3'))
+        s.set_setting('b', Setting('2'))
+        s.set_setting('a', Setting('1'))
+        self.assertEquals(['a', 'b', 'c'], s.get_settings())
+    
+    def test_getattr(self):
+        '''Should implement section.setting behavior'''
+        s = Section()
+        s.set_setting('a', Setting('1'))
+        s.set_setting('b', Setting('2'))
+        self.assertEquals(1, s.a)
+        self.assertEquals(2, s.b)
+
+    def test_setattr(self):
+        '''Should implement section.setting = value behavior'''
+        s = Section()
+        s.a = '1'
+        self.assertEquals(1, s.get_setting('a').get())
+
+    def test_delattr(self):
+        '''Should implement del section.setting behavior'''
+        s = Section()
+        s.set_setting('a', Setting('1'))
+        del s.a
+        self.assertEquals([], s.get_settings())
+
 #class TestSimpleConfig(TestBase):
 #    '''Tests for SimpleConfig class'''
 #
