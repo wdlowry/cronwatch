@@ -19,8 +19,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-__all__ = ['SimpleConfig', 'SimpleConfigSection', 'Setting',
-           'SettingError', 'SectionError', 'ConfigError']
+__all__ = ['Setting', 'Section', 'SimpleConfig',
+           'InvalidSettingError']
 import re
 import copy
 
@@ -35,14 +35,8 @@ class Error(Exception):
     def __str__(self):
         return self.msg
 
-class SettingError(Error):
-    pass
-
-class SectionError(Error):
-    pass
-
-class ConfigError(Error):
-    pass
+class InvalidSettingError(Error):
+    '''The specified setting is missing'''
 
 ###############################################################################
 # simpleconfig Classes
@@ -92,51 +86,68 @@ class Setting(object):
         
     auto_type = staticmethod(auto_type)
 
-class SimpleConfigSection(object):
+class Section(object):
     '''Class for holding configuration sections'''
 
-    def __init__(self, settings = {}, auto_type = True, defaults = None):
-        self.__dict__['__settings'] = {}
+    def __init__(self):
+        self.__set_dict('settings', {})
 
-        if defaults:
-            self.__dict__['__settings'] = copy.deepcopy(
-                    defaults.__dict__['__settings'])
+    def __set_dict(self, attr, value):
+        '''Set private attributes'''
+        self.__dict__[attr] = value
 
-        for s in settings:
-            self.set(s, settings[s], auto_type = auto_type)
+    def __get_dict(self, attr):
+        '''Return private attributes'''
+        return self.__dict__[attr]
 
-    def __get_settings(self):
-        '''Return the private dictionary of settings'''
-        return self.__dict__['__settings']
-
-    def set(self, setting, value, auto_type = True):
+    def set_setting(self, setting, value):
         '''Set the value for a setting'''
-        self.__get_settings()[setting] = Setting(value, auto_type = auto_type)
+        assert isinstance(setting, str)
+        assert isinstance(value, Setting)
+        self.__get_dict('settings')[setting] = value
 
-    def get(self, setting, raw = False):
+    def get_setting(self, setting):
         '''Gets a value for the setting'''
-        if not self.__get_settings().has_key(setting):
-            raise SettingError('invalid setting %s' % setting)
+        if not self.has_setting(setting):
+            raise InvalidSettingError('invalid setting: %s' % setting)
+        return self.__get_dict('settings')[setting]
 
-        return self.__get_settings()[setting].get(raw = raw)
+    def has_setting(self, setting):
+        '''Checks whether a setting exists'''
+        return self.__get_dict('settings').has_key(setting)
+
+    def del_setting(self, setting):
+        '''Deletes a setting'''
+        if not self.has_setting(setting):
+            raise InvalidSettingError('invalid setting: %s' % setting)
+        del self.__get_dict('settings')[setting]
 
     def get_settings(self):
         '''Get a list of setting names'''
-        settings = self.__get_settings().keys()
+        settings = self.__get_dict('settings').keys()
         settings.sort()
         return settings
 
     def __getattr__(self, setting):
         '''Allow accessing settings as attributes of this object'''
-        return self.get(setting)
+        return self.get_setting(setting).get()
 
     def __setattr__(self, setting, value):
         '''Allow setting values as attributes of this object'''
-        self.set(setting, value)
+        self.set_setting(setting, Setting(value))
 
+    def __delattr__(self, setting):
+        '''Allow settings to be deleted as attributes'''
+        self.del_setting(setting)
 
 class SimpleConfig(object):
     '''Simple configuration class'''
+
+    # get_setting with raw
+    # set_setting with auto
+    # add_section ?
+    # get_section
+    # set_section
 
     def __init__(self):
         self.__dict__['__sections'] = {}
