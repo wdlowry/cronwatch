@@ -30,6 +30,13 @@ import StringIO
 class TestSetting(TestBase):
     '''Tests for the Setting class'''
 
+    def test_set_get_name(self):
+        '''Should allow the name of the setting to be set and get'''
+        s = Setting()
+        self.assertEqual(None, s.get_name())
+        s.set_name('name')
+        self.assertEqual('name', s.get_name())
+
     def test_set_get(self):
         '''Should allow us to set and get the value'''
         s = Setting()
@@ -39,8 +46,9 @@ class TestSetting(TestBase):
 
     def test_constructor(self):
         '''Should allow the constructor to set the value'''
-        s = Setting('value')
+        s = Setting('value', name = 'name')
         self.assertEqual('value', s.get())
+        self.assertEqual('name', s.get_name())
 
     def test_auto_type(self):
         '''Should return an automatic value'''
@@ -94,12 +102,20 @@ class TestSetting(TestBase):
 class TestSection(TestBase):
     '''Tests for the Section class'''
 
-    def test_set_get(self):
+    def test_set_get_name(self):
+        '''Should allow the name of the sectionto be set and get'''
+        s = Section()
+        self.assertEqual(None, s.get_name())
+        s.set_name('name')
+        self.assertEqual('name', s.get_name())
+
+    def test_set_get_section(self):
         '''Should allow setting and getting via methods'''
         s = Section()
         s.set_setting('setting', Setting('1'))
         self.assertEquals(1, s.get_setting('setting').get())
-    
+        self.assertEquals('setting', s.get_setting('setting').get_name())
+
     def test_has_setting(self):
         '''Should tell whether a setting exists'''
         s = Section()
@@ -156,56 +172,168 @@ class TestSection(TestBase):
         del s.a
         self.assertEquals([], s.get_settings())
 
-#class TestSimpleConfig(TestBase):
-#    '''Tests for SimpleConfig class'''
-#
-#    def test_add(self):
-#        '''Should add a section to the config'''
-#        s = SimpleConfig()
-#
-#        self.assertEquals([], s.get_sections())
-#        s.add('two')
-#        sec = s.add('one')
-#        self.assertEquals(['one', 'two'], s.get_sections())
-#        self.assertTrue(isinstance(sec, SimpleConfigSection))
-#
-#    def test_has(self):
-#        '''Should check if a section exists'''
-#        s = SimpleConfig()
-#        self.assertFalse(s.has('one'))
-#        s.add('one')
-#        self.assertTrue(s.has('one'))
-#
-#    def test_get(self):
-#        '''Should return the specified section'''
-#        s = SimpleConfig()
-#        sec = s.add('one')
-#        sec.set('setting', '1')
-#        self.assertEquals(1, s.get('one').get('setting'))
-#
+    def test_iterator(self):
+        '''Should allow to work as an iterator'''
+        s = Section()
+        s.set_setting('b', Setting('2'))
+        s.set_setting('c', Setting('3'))
+        s.set_setting('a', Setting('1'))
+
+        settings = []
+        for i in s:
+            settings.append(i)
+
+        self.assertEquals('a', settings[0].get_name())
+        self.assertEquals('b', settings[1].get_name())
+        self.assertEquals('c', settings[2].get_name())
+
+class TestConfig(TestBase):
+    '''Tests for Config class'''
+    
+    def test_set_get_setting(self):
+        '''Should allow setting and getting via methods'''
+        c = Config()
+        s1 = Section()
+        s2 = Section()
+        s1.a = 1
+        s2.b = 2
+
+        c.set_section('s1', s1)
+        c.set_section('s2', s2)
+
+        self.assertEquals(1, c.get_section('s1').a)
+        self.assertEquals(2, c.get_section('s2').b)
+        self.assertEquals('s1', c.get_section('s1').get_name())
+
+    def test_has_section(self):
+        '''Should check if a section exists'''
+        c = Config()
+        s = Section()
+        self.assertFalse(c.has_section('s'))
+        c.set_section('s', s)
+        self.assertTrue(c.has_section('s'))
+
+    def test_del_section(self):
+        '''Should delete a section'''
+        c = Config()
+        s = Section()
+        c.set_section('s', s)
+        c.del_section('s')
+        self.assertFalse(c.has_section('s'))
+
+    def test_get_section_missing(self):
+        '''Should raise an exception if the section does not exist'''
+        c = Config()
+        self.assertRaisesError(InvalidSectionError,
+                               'invalid section: sec',
+                               c.get_section, 'sec')
+
+    def test_del_section_missing(self):
+        '''Should raise an exception if the section does not exist'''
+        c = Config()
+        self.assertRaisesError(InvalidSectionError,
+                               'invalid section: sec',
+                               c.del_section, 'sec')
+
+    def test_get_sections(self):
+        '''Should return a list of sections'''
+        c = Config()
+        c.set_section('c', Section())
+        c.set_section('b', Section())
+        c.set_section('a', Section())
+        self.assertEquals(['a', 'b', 'c'], c.get_sections())
+
+    def test_get_setting(self):
+        '''Should retrieve a setting'''
+        c = Config()
+        s = Section()
+        a = Setting(1)
+        c.set_section('s', s)
+        s.set_setting('a', a)
+
+        self.assertEqual(1, c.get_setting('s', 'a'))
+
+    def test_get_setting_raw(self):
+        '''Should retrieve a setting in the raw format'''
+        c = Config()
+        s = Section()
+        a = Setting('1')
+        c.set_section('s', s)
+        s.set_setting('a', a)
+        
+        self.assertEqual('1', c.get_setting('s', 'a', raw = True))
+
+    def test_set_setting(self):
+        '''Shold set a setting in a section'''
+        c = Config()
+        s = Section()
+        c.set_section('s', s)
+        
+        c.set_setting('s', 'a', 1)
+        self.assertEqual(1, c.get_setting('s', 'a'))
+
+    def test_set_setting_auto_section(self):
+        '''Should automatically create missing sections'''
+        c = Config()
+        c.set_setting('s', 'a', 1)
+        self.assertEqual(1, c.get_setting('s', 'a'))
+        self.assertRaises(InvalidSectionError, c.set_setting, 's2', 'a', 1, 
+                          auto_section = False)
+
+    def test_set_setting_auto_type(self):
+        '''Should have the ability to turn off auto typing'''
+        c = Config()
+        c.set_setting('s', 'a', '1')
+        c.set_setting('s', 'b', '2', auto_type = False)
+        self.assertEqual(1, c.get_setting('s', 'a'))
+        self.assertEqual('2', c.get_setting('s', 'b'))
+
+    def test_get_attr(self):
+        '''Should implement config.section.setting behavior'''
+        c = Config()
+        c.set_setting('s', 'a', 1)
+        self.assertEqual(1, c.s.a)
+
+    def test_get_attr_auto_section(self):
+        '''Should implement config.section.setting = value behavior'''
+        c = Config()
+        c.s.a = 1
+        self.assertEqual(1, c.get_setting('s', 'a'))
+
+    def test_del_attr(self):
+        '''Should allow sections to be deleted with del'''
+        c = Config()
+        c.set_section('s', Section())
+        del c.s
+        self.assertEqual([], c.get_sections())
+
+    def test_iterator(self):
+        '''Should allow to work as an iterator'''
+        c = Config()
+        c.set_section('b', Section())
+        c.set_section('c', Section())
+        c.set_section('a', Section())
+        
+        sections = []
+        for i in c:
+            sections.append(i)
+
+        self.assertEquals('a', sections[0].get_name())
+        self.assertEquals('b', sections[1].get_name())
+        self.assertEquals('c', sections[2].get_name())
+
+
 #    def test_add_duplicate(self):
 #        '''Should just ignore a section is if is added a second time'''
-#        s = SimpleConfig()
+#        s = Config()
 #        s.add('one').set('a', '1')
 #        s.add('one')
 #        self.assertEquals(1, s.get('one').get('a'))
 #
-#    def test_invalid_section(self):
-#        '''Should throw an exception is the section is not known'''
-#        self.assertRaisesError(SectionError, 
-#                               'invalid section wrong',
-#                                SimpleConfig().get, 'wrong')
-#
-#    def test_del(self):
-#        '''Should delete a section'''
-#        s = SimpleConfig()
-#        s.add('one')
-#        s.delete('one')
-#        self.assertEquals([], s.get_sections())
 #
 #    def test_getattr(self):
 #        '''Should implement config.section behavior'''
-#        s = SimpleConfig()
+#        s = Config()
 #        s.add('one')
 #        s.add('two')
 #        s.get('one').set('a', '1')
@@ -216,7 +344,7 @@ class TestSection(TestBase):
 #
 #    def test_getattr_autocreate(self):
 #        '''Should implement config.section.setting = value behavior'''
-#        s = SimpleConfig()
+#        s = Config()
 #        s.one.a = '1'
 #        s.two.b = '2'
 #        
@@ -225,7 +353,7 @@ class TestSection(TestBase):
 #
 #    def test_defaults(self):
 #        '''Should apply the default section settings other sections'''
-#        s = SimpleConfig()
+#        s = Config()
 #        s.defaults.a = '1'
 #        s.defaults.b = '2'
 #        s.add('one')
@@ -242,11 +370,11 @@ class TestSection(TestBase):
 #
 #        self.assertRaisesError(ConfigError,
 #                'could not parse config file at line 2: error',
-#                SimpleConfig().readfp, f)
+#                Config().readfp, f)
 #    
 #    def test_readfp_empty(self):
 #        '''Should create a mostly empty config'''
-#        s = SimpleConfig()
+#        s = Config()
 #        s.readfp(StringIO.StringIO())
 #        self.assertEquals([], s.get_sections())
 #
@@ -257,7 +385,7 @@ class TestSection(TestBase):
 #        f.write('[two]')
 #        f.seek(0)
 #
-#        s = SimpleConfig()
+#        s = Config()
 #        s.readfp(f)
 #
 #        self.assertEquals(['section  one', 'two'], s.get_sections())
@@ -272,7 +400,7 @@ class TestSection(TestBase):
 #        f.write('  \t  b b  \t  =  \t  1  \t  \n')
 #        f.seek(0)
 #
-#        s = SimpleConfig()
+#        s = Config()
 #        s.readfp(f)
 #
 #        self.assertEquals(['one'], s.get_sections())
@@ -286,7 +414,7 @@ class TestSection(TestBase):
 #        f.write('a=1\n')
 #        f.seek(0)
 #
-#        s = SimpleConfig()
+#        s = Config()
 #        self.assertRaisesError(ConfigError,
 #                'section header missing at line 1: a=1',
 #                s.readfp, f)
@@ -299,7 +427,7 @@ class TestSection(TestBase):
 #        f.write('    \t # This is a second comment\n')
 #        f.seek(0)
 #
-#        s = SimpleConfig()
+#        s = Config()
 #        s.readfp(f)
 #        self.assertEquals([], s.get_sections())
 #
@@ -315,7 +443,7 @@ class TestSection(TestBase):
 #        f.write('b=2\n')
 #        f.seek(0)
 #
-#        s = SimpleConfig()
+#        s = Config()
 #        s.defaults.a = 1
 #        s.defaults.b = 3
 #        s.readfp(f)
@@ -348,7 +476,7 @@ class TestSection(TestBase):
 #        f.write('a=1\n')
 #        f.seek(0)
 #
-#        s = SimpleConfig()
+#        s = Config()
 #        s.readfp(f)
 #
 #        self.assertEquals(1, s.one.a)
@@ -364,7 +492,7 @@ class TestSection(TestBase):
 #        f.write('a=2\n')
 #        f.seek(0)
 #        
-#        s = SimpleConfig()
+#        s = Config()
 #        s.readfp(f)
 #
 #        #self.assertEquals([1, 2], s.one.a)

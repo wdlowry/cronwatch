@@ -19,8 +19,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-__all__ = ['Setting', 'Section', 'SimpleConfig',
-           'InvalidSettingError']
+__all__ = ['Setting', 'Section', 'Config',
+           'InvalidSettingError', 'InvalidSectionError']
 import re
 import copy
 
@@ -38,14 +38,26 @@ class Error(Exception):
 class InvalidSettingError(Error):
     '''The specified setting is missing'''
 
+class InvalidSectionError(Error):
+    '''The specified section is missing'''
+
 ###############################################################################
 # simpleconfig Classes
 ###############################################################################
 class Setting(object):
     '''Class for holding invidual configuration settings'''
-    def __init__(self, value = None, auto_type = True):
+    def __init__(self, value = None, auto_type = True, name = None):
         self.auto_type = auto_type
+        self.set_name(name)
         self.set(value)
+
+    def get_name(self):
+        '''Return the name of the setting'''
+        return self.__name
+
+    def set_name(self, name):
+        '''Set the name of the setting'''
+        self.__name = name
 
     def set(self, value, raw = False):
         '''Set the value'''
@@ -90,41 +102,43 @@ class Section(object):
     '''Class for holding configuration sections'''
 
     def __init__(self):
-        self.__set_dict('settings', {})
+        self.__dict__['__settings'] = {}
+        self.set_name(None)
 
-    def __set_dict(self, attr, value):
-        '''Set private attributes'''
-        self.__dict__[attr] = value
+    def get_name(self):
+        '''Get the name'''
+        return self.__dict__['__name']
 
-    def __get_dict(self, attr):
-        '''Return private attributes'''
-        return self.__dict__[attr]
+    def set_name(self, name):
+        '''Set the name'''
+        self.__dict__['__name'] = name
 
     def set_setting(self, setting, value):
         '''Set the value for a setting'''
         assert isinstance(setting, str)
         assert isinstance(value, Setting)
-        self.__get_dict('settings')[setting] = value
+        value.set_name(setting)
+        self.__dict__['__settings'][setting] = value
 
     def get_setting(self, setting):
         '''Gets a value for the setting'''
         if not self.has_setting(setting):
             raise InvalidSettingError('invalid setting: %s' % setting)
-        return self.__get_dict('settings')[setting]
+        return self.__dict__['__settings'][setting]
 
     def has_setting(self, setting):
         '''Checks whether a setting exists'''
-        return self.__get_dict('settings').has_key(setting)
+        return self.__dict__['__settings'].has_key(setting)
 
     def del_setting(self, setting):
         '''Deletes a setting'''
         if not self.has_setting(setting):
             raise InvalidSettingError('invalid setting: %s' % setting)
-        del self.__get_dict('settings')[setting]
+        del self.__dict__['__settings'][setting]
 
     def get_settings(self):
         '''Get a list of setting names'''
-        settings = self.__get_dict('settings').keys()
+        settings = self.__dict__['__settings'].keys()
         settings.sort()
         return settings
 
@@ -140,107 +154,137 @@ class Section(object):
         '''Allow settings to be deleted as attributes'''
         self.del_setting(setting)
 
-class SimpleConfig(object):
+    def __iter__(self):
+        '''Allow settings to be pulled using an iterator'''
+        class iter(object):
+            def __init__(my_self):
+                settings = self.get_settings()
+                # Generate a list of settings
+                my_self.settings = []
+                for s in settings:
+                    my_self.settings.append(self.get_setting(s))
+            def next(self):
+                if len(self.settings) > 0:
+                    return self.settings.pop(0)
+                else:
+                    raise StopIteration()
+        return iter()
+
+class Config(object):
     '''Simple configuration class'''
-
-    # get_setting with raw
-    # set_setting with auto
-    # add_section ?
-    # get_section
-    # set_section
-
     def __init__(self):
         self.__dict__['__sections'] = {}
 
-    def __get_sections(self):
-        '''Return the private dictionary of sections'''
-        return self.__dict__['__sections']
+    def set_section(self, name, section):
+        '''Add a section to the config'''
+        assert isinstance(name, str)
+        assert isinstance(section, Section)
+        # TODO dupes ?
+        section.set_name(name)
+        self.__dict__['__sections'][name] = section
 
-    def add(self, section):
-        '''Add a section to the configuration'''
-        sections = self.__get_sections()
+    def get_section(self, section):
+        '''Get a section from the config'''
+        if not self.has_section(section):
+            raise InvalidSectionError('invalid section: %s' % section)
+        return self.__dict__['__sections'][section]
 
-        # Just ignore a duplicate section
-        if sections.has_key(section): return
+    def has_section(self, section):
+        '''Check if a section exists'''
+        return self.__dict__['__sections'].has_key(section)
 
-        defaults = None
-        if sections.has_key('defaults'):
-            defaults = sections['defaults']
-        
-        s = SimpleConfigSection(defaults = defaults)
-        sections[section] = s
-        return s
-
-    def has(self, section):
-        '''Check to see if a section exists'''
-        return self.__get_sections().has_key(section)
-
-    def get(self, section):
-        '''Return the specified section'''
-        sections = self.__get_sections()
-        if not sections.has_key(section):
-            raise SectionError('invalid section %s' % section)
-
-        return sections[section]
-
-    def delete(self, section):
-        '''Delete a section'''
-        del self.__get_sections()[section]
+    def del_section(self, section):
+        '''Should delete a section'''
+        if not self.has_section(section):
+            raise InvalidSectionError('invalid section: %s' % section)
+        del self.__dict__['__sections'][section]
 
     def get_sections(self):
         '''Return a list of sections'''
-        sections = self.__get_sections().keys()
+        sections = self.__dict__['__sections'].keys()
         sections.sort()
         return sections
 
+    def get_setting(self, section, setting, raw = False):
+        '''Should return a setting in a section'''
+        return self.get_section(section).get_setting(setting).get(raw)
+
+    def set_setting(self, section, setting, value, auto_section = True,
+                    auto_type = True):
+        '''Should set a setting in a section'''
+        if not self.has_section(section) and auto_section:
+            self.set_section(section, Section())
+        self.get_section(section).set_setting(setting,
+                Setting(value, auto_type = auto_type))
+
     def __getattr__(self, section):
-        '''Allow accessing sections as attributes of this object'''
-        if not self.__get_sections().has_key(section):
-            self.add(section)
-        return self.get(section)
+        '''Allow accessing settings as attributes of this object'''
+        if not self.has_section(section):
+            self.set_section(section, Section())
+        return self.get_section(section)
 
-    def readfp(self, fp):
-        '''Read the config in from a file'''
+    def __delattr__(self, section):
+        '''Allow sections to be deleted as attributes'''
+        self.del_section(section)
 
-        config = SimpleConfig()
-        section = None
+    def __iter__(self):
+        '''Allow sections to be pulled using an iterator'''
+        class iter(object):
+            def __init__(my_self):
+                sections = self.get_sections()
+                # Generate a list of sections
+                my_self.sections = []
+                for s in sections:
+                    my_self.sections.append(self.get_section(s))
+            def next(self):
+                if len(self.sections) > 0:
+                    return self.sections.pop(0)
+                else:
+                    raise StopIteration()
+        return iter()
 
-        i = 0
-        for l in fp:
-            i += 1
-            # Ignore empty line and comments
-            if re.match(r'^\s*(#.*)?$', l): continue
-            
-            # Check for section headers
-            r = re.match(r'^\s*\[\s*([^\]]*?)\s*\]\s*$', l)
-            if r:
-                section = config.add(r.group(1))
-                continue
-            
-            # Check for variables
-            r = re.match(r'^\s*([^=]*?)\s*=\s*(.*?)\s*$', l)
-            if r:
-                if section is None:
-                    raise ConfigError('section header missing at line %i: %s' %
-                                      (i, l))
-                s = r.group(1)
-                v = r.group(2)
-                section.set(s, v)
-                continue
-            
-            # If we get this far there was a config error
-            raise ConfigError('could not parse config file at line %i: %s' %
-                    (i, l))
-            
-        # Write the dict to the object, but first pull out the defaults
-        if config.has('defaults'):
-            for setting in config.defaults.get_settings():
-                self.defaults.set(setting, config.defaults.get(setting))
-            config.delete('defaults')
+    #def readfp(self, fp):
+    #    '''Read the config in from a file'''
 
-        for section in config.get_sections():
-            self.add(section)
-            
-            for setting in config.get(section).get_settings():
-                self.get(section).set(setting, config.get(section).get(setting))
+    #    config = SimpleConfig()
+    #    section = None
+
+    #    i = 0
+    #    for l in fp:
+    #        i += 1
+    #        # Ignore empty line and comments
+    #        if re.match(r'^\s*(#.*)?$', l): continue
+    #        
+    #        # Check for section headers
+    #        r = re.match(r'^\s*\[\s*([^\]]*?)\s*\]\s*$', l)
+    #        if r:
+    #            section = config.add(r.group(1))
+    #            continue
+    #        
+    #        # Check for variables
+    #        r = re.match(r'^\s*([^=]*?)\s*=\s*(.*?)\s*$', l)
+    #        if r:
+    #            if section is None:
+    #                raise ConfigError('section header missing at line %i: %s' %
+    #                                  (i, l))
+    #            s = r.group(1)
+    #            v = r.group(2)
+    #            section.set(s, v)
+    #            continue
+    #        
+    #        # If we get this far there was a config error
+    #        raise ConfigError('could not parse config file at line %i: %s' %
+    #                (i, l))
+    #        
+    #    # Write the dict to the object, but first pull out the defaults
+    #    if config.has('defaults'):
+    #        for setting in config.defaults.get_settings():
+    #            self.defaults.set(setting, config.defaults.get(setting))
+    #        config.delete('defaults')
+
+    #    for section in config.get_sections():
+    #        self.add(section)
+    #        
+    #        for setting in config.get(section).get_settings():
+    #            self.get(section).set(setting, config.get(section).get(setting))
 
