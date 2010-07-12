@@ -347,6 +347,42 @@ class TestConfig(TestBase):
         c1.both.both.append(6)
         self.assertEquals(['b'], c2.only2.get_settings())
         self.assertEquals([4, 5], c2.both.both)
+    
+    def test_get_set_default_section(self):
+        '''Should set and get the name of the default section'''
+        c = Config()
+        self.assertEqual('defaults', c.get_default_section())
+        c.set_default_section('other')
+        self.assertEqual('other', c.get_default_section())
+        c = Config(default_section = None)
+        self.assertEqual(None, c.get_default_section())
+
+    def test_apply_defaults(self):
+        '''Should apply default settings to the other sections'''
+        c = Config(default_section = None)
+        c.mydefaults.a = 1
+        c.one.b = 2
+        c.two.a = 3
+
+        self.assertTrue(['b'], c.one.get_settings())
+        
+        c.set_default_section('mydefaults')
+        c.apply_defaults()
+
+        self.assertTrue(1, c.one.a)
+        self.assertTrue(2, c.one.b)
+        self.assertTrue(3, c.two.a)
+
+    def test_apply_defaults_set_section(self):
+        '''Should apply defaults when a new section is created'''
+        c = Config()
+        c.defaults.a = 1
+        c.defaults.b = 2
+        c.one.c = 3
+
+        self.assertTrue(1, c.one.a)
+        self.assertTrue(2, c.one.b)
+
 
     def test_create_from_file_empty(self):
         '''Should create a mostly empty config'''
@@ -484,22 +520,5 @@ class TestConfig(TestBase):
 #        s.readfp(f)
 #
 #        self.assertEquals(1, s.one.a)
-#
-#    def test_readfp_lists(self):
-#        '''Should treat multiple instances of variables in the same section
-#           as lists'''
-#        f = StringIO.StringIO()
-#        f.write('[defaults]\n')
-#        f.write('a=1\n')
-#        f.write('[one]\n')
-#        f.write('a=1\n')
-#        f.write('a=2\n')
-#        f.seek(0)
-#        
-#        s = Config()
-#        s.readfp(f)
-#
-#        #self.assertEquals([1, 2], s.one.a)
-#
 if __name__ == '__main__':
     unittest.main()
