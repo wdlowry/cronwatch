@@ -186,6 +186,7 @@ class Config(object):
         assert isinstance(section, Section)
         section.set_name(name)
         self.__dict__['__sections'][name] = section
+        self.apply_defaults()
 
     def get_section(self, section):
         '''Get a section from the config'''
@@ -269,11 +270,19 @@ class Config(object):
         '''Get the default section'''
         return self.__dict__['__default']
 
-    def apply_defaults(self):
+    def apply_defaults(self, section = None):
         '''Apply the default section to the other sections'''
         default = self.__dict__['__default']
+        
+        if not self.has_section(default):
+            return
 
-        for section in self:
+        if section is None:
+            sections = self.__dict__['__sections'].values()
+        else:
+            sections = [self.get_section(section)]
+
+        for section in sections:
             # Skip the default section of course
             if section.get_name() == default: continue
 
@@ -330,7 +339,10 @@ class Config(object):
             # If we get this far there was a config error
             raise ConfigParseError('could not parse config file at line %i: %s'
                                    % (ln, line))
+            
+        config.apply_defaults()
         return config
+
 
     create_from_file = staticmethod(create_from_file)
 

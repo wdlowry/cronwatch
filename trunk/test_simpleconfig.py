@@ -364,14 +364,30 @@ class TestConfig(TestBase):
         c.one.b = 2
         c.two.a = 3
 
-        self.assertTrue(['b'], c.one.get_settings())
+        self.assertEquals(['b'], c.one.get_settings())
         
         c.set_default_section('mydefaults')
         c.apply_defaults()
 
-        self.assertTrue(1, c.one.a)
-        self.assertTrue(2, c.one.b)
-        self.assertTrue(3, c.two.a)
+        self.assertEquals(1, c.one.a)
+        self.assertEquals(2, c.one.b)
+        self.assertEquals(3, c.two.a)
+
+    def test_apply_defaults_section(self):
+        '''Should allow the section to be specified'''
+        c = Config(default_section = None)
+        c.mydefaults.a = 1
+        c.one.b = 2
+        c.two.b = 3
+
+        self.assertEquals(['b'], c.one.get_settings())
+        self.assertEquals(['b'], c.two.get_settings())
+        
+        c.set_default_section('mydefaults')
+        c.apply_defaults('one')
+
+        self.assertEquals(['a', 'b'], c.one.get_settings())
+        self.assertEquals(['b'], c.two.get_settings())
 
     def test_apply_defaults_set_section(self):
         '''Should apply defaults when a new section is created'''
@@ -455,22 +471,18 @@ class TestConfig(TestBase):
 
         self.assertEqual(1, c.one.a)
         self.assertEqual([1, 2, 3], c.two.a)
+    
+    def test_create_from_file_defaults(self):
+        '''Should apply the defaults after creating a file object'''
+        f = StringIO.StringIO()
+        f.write('[one]\n')
+        f.write('[defaults]\n')
+        f.write('a=1\n')
+        f.seek(0)
 
-#    def test_defaults(self):
-#        '''Should apply the default section settings other sections'''
-#        s = Config()
-#        s.defaults.a = '1'
-#        s.defaults.b = '2'
-#        s.add('one')
-#        
-#        self.assertEquals(1, s.one.a)
-#        self.assertEquals(2, s.one.b)
-#
-#    
-#
-#
-#
-#
+        c = Config.create_from_file(f)
+        self.assertEquals(1, c.one.a)
+
 #    def test_readfp_defaults(self):
 #        '''Should allow defaults to be set'''
 #        f = StringIO.StringIO()
@@ -507,18 +519,6 @@ class TestConfig(TestBase):
 #        self.assertEquals(1, s.three.a)
 #        self.assertEquals(2, s.three.b)
 #
-#    def test_readfp_defaults_file_only(self):
-#        '''Should add the defaults section into the config if it doesn't
-#           exist'''
-#        f = StringIO.StringIO()
-#        f.write('[one]\n')
-#        f.write('[defaults]\n')
-#        f.write('a=1\n')
-#        f.seek(0)
-#
-#        s = Config()
-#        s.readfp(f)
-#
-#        self.assertEquals(1, s.one.a)
+
 if __name__ == '__main__':
     unittest.main()
