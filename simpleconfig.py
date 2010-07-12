@@ -176,14 +176,14 @@ class Section(object):
 
 class Config(object):
     '''Simple configuration class'''
-    def __init__(self):
+    def __init__(self, default_section = 'defaults'):
         self.__dict__['__sections'] = {}
+        self.__dict__['__default'] = default_section
 
     def set_section(self, name, section):
         '''Add a section to the config'''
         assert isinstance(name, str)
         assert isinstance(section, Section)
-        # TODO dupes ?
         section.set_name(name)
         self.__dict__['__sections'][name] = section
 
@@ -260,6 +260,27 @@ class Config(object):
                     set_name = setting.get_name()
                     self.get_section(sec_name).set_setting(set_name,
                             copy.deepcopy(setting))
+
+    def set_default_section(self, section):
+        '''Set the section that has the defaults'''
+        self.__dict__['__default'] = section
+
+    def get_default_section(self):
+        '''Get the default section'''
+        return self.__dict__['__default']
+
+    def apply_defaults(self):
+        '''Apply the default section to the other sections'''
+        default = self.__dict__['__default']
+
+        for section in self:
+            # Skip the default section of course
+            if section.get_name() == default: continue
+
+            for setting in self.get_section(default):
+                if not section.has_setting(setting.get_name()):
+                    section.set_setting(setting.get_name(),
+                                        copy.deepcopy(setting))
     
     def create_from_file(fp):
         '''Create a config file from a file object'''
@@ -312,44 +333,4 @@ class Config(object):
         return config
 
     create_from_file = staticmethod(create_from_file)
-
-    #def readfp(self, fp):
-    #    '''Read the config in from a file'''
-
-    #    config = SimpleConfig()
-    #    section = None
-
-    #    i = 0
-    #    for l in fp:
-    #        i += 1
-    #        # Ignore empty line and comments
-    #        if re.match(r'^\s*(#.*)?$', l): continue
-    #        
-    #        
-    #        # Check for variables
-    #        r = re.match(r'^\s*([^=]*?)\s*=\s*(.*?)\s*$', l)
-    #        if r:
-    #            if section is None:
-    #                raise ConfigError('section header missing at line %i: %s' %
-    #                                  (i, l))
-    #            s = r.group(1)
-    #            v = r.group(2)
-    #            section.set(s, v)
-    #            continue
-    #        
-    #        # If we get this far there was a config error
-    #        raise ConfigError('could not parse config file at line %i: %s' %
-    #                (i, l))
-    #        
-    #    # Write the dict to the object, but first pull out the defaults
-    #    if config.has('defaults'):
-    #        for setting in config.defaults.get_settings():
-    #            self.defaults.set(setting, config.defaults.get(setting))
-    #        config.delete('defaults')
-
-    #    for section in config.get_sections():
-    #        self.add(section)
-    #        
-    #        for setting in config.get(section).get_settings():
-    #            self.get(section).set(setting, config.get(section).get(setting))
 
