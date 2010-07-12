@@ -48,18 +48,49 @@ cronwatch uses the Python re module for regular expression matching. Python's re
 cronwatch understands these configuration options.
 
 == required ==
-|| *Setting:* || `required` ||
-|| *Default:* || None ||
-|| *Description:* || A regular expression or a list of regular expressions that must be found in the output for the jbo to be considered successful. ||
+|| *Name:* || `required` ||
+|| *Default Value:* || None ||
+|| *Description:* || A regular expression or a list of regular expressions that must be found in the output for the job to be considered successful. ||
 
-Ex
-Description:
-Name  	 Description  	 Default
-required 	a regex or list of regexes that must be found in the output for the job to be considered successful 	None
-blacklist 	a regex or list of regexes that will result in an error if found in the output 	.*
-whitelist 	a regex or list of regexes that will be used as a default deny list, i.e. if a line is found in the output that does not match any of the whitelist regexes, then it will result in an error 	None
-exit_codes 	an exit code or list of exit codes that are acceptable. Other exit codes will result in an error 	0
-email 	a e-mail address to send output to 	root
-email_maxsize 	the maximum size of output to send in an e-mail. If everything should be sent, then email_maxlines should be set to -1 	4096
-email_success 	specifies whether to send an e-mail when there were no failures 	False
-logfile 	the template for the log file 	/var/log/cronwatch-%TAG%-%Y%m%d%h%m.log
+== blacklist ===
+|| *Name:* || `blacklist` ||
+|| *Default Value:* || `.*` ||
+|| *Description:* || A regular expression or a list of regular expressions that will result in an error if found in the output. ||
+
+== whitelist ==
+|| *Name:* || `whitelist` ||
+|| *Default Value:* || None ||
+|| *Description:* || A regular expression or a list of regular expressions that if are not matched will result in an error. ||
+
+If whitelist is specified, then the every line of output is matches against the regular expression(s). If it does not match, then cronwatch will flag the output as an error.
+
+If both whitelist and blacklist are specified, then the output is first tested against whitelist. If it passes, it is then tested against blacklist. For example, if whitelist is `success` and blacklist is `not` then `not successful` will match both and thus be marked as an error.
+
+== exit_code ==
+|| *Name:* || `exit_code` ||
+|| *Default Value:* || `0` ||
+|| *Description:* || A list of acceptable error code. Other error codes will result in an error. ||
+
+== email ==
+|| *Name:* || `email` ||
+|| *Default Value:* || `root` ||
+|| *Description:* || An e-mail address to send out put to. This address can be a local account, for example, `root`, the default. ||
+
+== email_maxsize ==
+|| *Name:* || `email_maxsize` ||
+|| *Default Value:* || `4096` ||
+|| *Description:* || The maximum size of output to send in an e-mail. If everything should be sent, then `email_maxlines` should be set to -1 ||
+
+*Caution*: If you don't know the maximum size of the output, it would be better to set a maximum size just in case the output gets really large.
+
+== email_success ==
+|| *Name:* || `email_success` ||
+|| *Default Value:* || `false` ||
+|| *Description:* || Determines whether an e-mail should be sent if the job was successful.||
+
+== logfile ==
+|| *Name:* || `logfile` ||
+|| *Default Value:* || None ||
+|| *Description:* || The file name for the log file. ||
+
+When determining the log file name, cronwatch first replaces `%TAG%` with the current tag and then uses Python's [http://docs.python.org/library/datetime.html#strftime-strptime-behavior strftime] to add date and time information. For example, `/var/log/cronwatch-%TAG%-%Y%m%d%h%M.log` would be evaluated to something like `/var/log/cronwatch-myjob-201001010952.log`.
