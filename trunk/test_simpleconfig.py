@@ -23,6 +23,7 @@ import unittest
 from test_base import TestBase
 from simpleconfig import *
 import StringIO
+import tempfile
 
 ###############################################################################
 # SimpleConfig Tests
@@ -189,7 +190,7 @@ class TestSection(TestBase):
 
 class TestConfig(TestBase):
     '''Tests for Config class'''
-    
+
     def test_set_get_setting(self):
         '''Should allow setting and getting via methods'''
         c = Config()
@@ -483,42 +484,42 @@ class TestConfig(TestBase):
         c = Config.create_from_file(f)
         self.assertEquals(1, c.one.a)
 
-#    def test_readfp_defaults(self):
-#        '''Should allow defaults to be set'''
-#        f = StringIO.StringIO()
-#        f.write('[one]\n')
-#        f.write('a=4\n')
-#        f.write('[two]\n')
-#        f.write('b=5\n')
-#        f.write('[three]\n')
-#        f.write('[defaults]\n')
-#        f.write('b=2\n')
-#        f.seek(0)
-#
-#        s = Config()
-#        s.defaults.a = 1
-#        s.defaults.b = 3
-#        s.readfp(f)
-#
-#        self.assertEquals(['defaults', 'one', 'three', 'two'],
-#                          s.get_sections())
-#        
-#        self.assertEquals(['a', 'b'], s.defaults.get_settings())
-#        self.assertEquals(1, s.defaults.a)
-#        self.assertEquals(2, s.defaults.b)
-#
-#        self.assertEquals(['a', 'b'], s.one.get_settings())
-#        self.assertEquals(4, s.one.a)
-#        self.assertEquals(2, s.one.b)
-#
-#        self.assertEquals(['a', 'b'], s.two.get_settings())
-#        self.assertEquals(1, s.two.a)
-#        self.assertEquals(5, s.two.b)
-#        
-#        self.assertEquals(['a', 'b'], s.three.get_settings())
-#        self.assertEquals(1, s.three.a)
-#        self.assertEquals(2, s.three.b)
-#
+    def test_read(self):
+        '''Should read config files and apply them to the current file'''
+        c = Config()
+        c.one.a = 1
+        
+        f1 = tempfile.NamedTemporaryFile()
+        f1.write('[one]\n')
+        f1.write('a=2\n')
+        f1.write('[two]\n')
+        f1.write('b=2')
+        f1.seek(0)
+
+        f2 = tempfile.NamedTemporaryFile()
+        f2.write('[one]\n')
+        f2.write('a=3\n')
+        f2.write('[three]\n')
+        f2.write('c=3')
+        f2.seek(0)
+
+        c.read([f1.name, f2.name])
+        
+        self.assertEquals(['one', 'three', 'two'], c.get_sections())
+        self.assertEquals(['a'], c.one.get_settings())
+        self.assertEquals(3, c.one.a)
+        self.assertEquals(['b'], c.two.get_settings())
+        self.assertEquals(2, c.two.b)
+        self.assertEquals(['c'], c.three.get_settings())
+        self.assertEquals(3, c.three.c)
+
+    def test_read_required(self):
+        '''Should only fail if the file can't be read if the required flag is
+           set'''
+        c = Config()
+        c.read('nonexistentfile.forsure')
+        self.assertRaises(IOError, c.read, 'nonexistentfile.forsure',
+                          required = True)
 
 if __name__ == '__main__':
     unittest.main()

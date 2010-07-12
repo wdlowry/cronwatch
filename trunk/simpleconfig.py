@@ -346,3 +346,18 @@ class Config(object):
 
     create_from_file = staticmethod(create_from_file)
 
+    def read(self, files, required = False):
+        '''Read in config files and apply them to this object'''
+
+        for fn in files:
+            if required:
+                fp = open(fn)
+            else:
+                try:
+                    fp = open(fn)
+                except IOError, e:
+                    return
+                
+            c = Config.create_from_file(fp)
+            self.apply_config(c)
+
