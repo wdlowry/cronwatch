@@ -1,0 +1,43 @@
+#summary Configuration options
+#labels Phase-Deploy
+
+= Configuration File Location =
+By default, cronwatch will check if /etc/cronwatch.conf exists, and if it does, load the configuration from it. If this file does not exist, then cronwatch will behave essentially as if it were cron (see the defaults below).
+
+If a configuration file is specified on the command line (-c option), then cronwatch will try to open that file and fail if it does not exist.
+
+= Configuration File Structure =
+The configuration file is a INI-style configuration file. Each section specifies the settings for a cronwatch job or jobs.
+
+The tag option (-t option) cronwatch which section to use. If the tag is not specified on the command line, cronwatch generates the tag from the basename of the program it is supposed to run. For example, if the program is `/usr/local/bin/my_fun_script`, then the tag is `my_fun_script`.
+
+cronwatch handles the `defaults` section in a special manner. Setting in this section are automatically applied to other sections unless that particular setting is set in the other section.
+
+Finally, multiple instances of the same configuration option in the same file are handled as lists. Thus, you can specify multiple values for certain configuration options by just repeating the setting name.
+
+= Example Configuration File =
+Here is an example configuration file. See the configuration options below for more information.
+{{{
+[defaults]
+email = root
+email_maxsize = 1048576
+exit_codes = 0
+exit_code = 10
+
+[log_cleanup]
+required = [0-9]+ log file\(s\) successfully rotated.
+blacklist = (?i)error
+blacklist = ^Could not open
+logfile = /var/log/%TAG%-%Y%m%d%h%m.log
+}}}
+
+= Configuration Options =
+Name  	 Description  	 Default
+required 	a regex or list of regexes that must be found in the output for the job to be considered successful 	None
+blacklist 	a regex or list of regexes that will result in an error if found in the output 	.*
+whitelist 	a regex or list of regexes that will be used as a default deny list, i.e. if a line is found in the output that does not match any of the whitelist regexes, then it will result in an error 	None
+exit_codes 	an exit code or list of exit codes that are acceptable. Other exit codes will result in an error 	0
+email 	a e-mail address to send output to 	root
+email_maxsize 	the maximum size of output to send in an e-mail. If everything should be sent, then email_maxlines should be set to -1 	4096
+email_success 	specifies whether to send an e-mail when there were no failures 	False
+logfile 	the template for the log file 	/var/log/cronwatch-%TAG%-%Y%m%d%h%m.log
