@@ -18,20 +18,42 @@ Finally, multiple instances of the same configuration option in the same file ar
 = Example Configuration File =
 Here is an example configuration file. See the configuration options below for more information.
 {{{
+# These defaults are applied to the other sections
 [defaults]
+
+# Send an e-mail to root on the local machine when something messes up
 email = root
+
+# Truncate the e-mail if it's bigger than 1M
 email_maxsize = 1048576
+
+# The exit code must either be 0 or 10
 exit_codes = 0
 exit_code = 10
 
 [log_cleanup]
+# Make sure this regular expression is in the output
 required = [0-9]+ log file\(s\) successfully rotated.
+
+# Both of 
 blacklist = (?i)error
 blacklist = ^Could not open
 logfile = /var/log/%TAG%-%Y%m%d%h%m.log
 }}}
 
+= Regular Expressions =
+cronwatch uses the Python re module for regular expression matching. Python's re module uses a similar syntax to PCRE. See http://docs.python.org/library/re.html#regular-expression-syntax for more details.
+
 = Configuration Options =
+cronwatch understands these configuration options.
+
+== required ==
+|| *Setting:* || `required` ||
+|| *Default:* || None ||
+|| *Description:* || A regular expression or a list of regular expressions that must be found in the output for the jbo to be considered successful. ||
+
+Ex
+Description:
 Name  	 Description  	 Default
 required 	a regex or list of regexes that must be found in the output for the job to be considered successful 	None
 blacklist 	a regex or list of regexes that will result in an error if found in the output 	.*
