@@ -27,6 +27,12 @@ import subprocess
 import tempfile
 import time
 import re
+import simpleconfig
+
+###############################################################################
+# Global variables
+###############################################################################
+CONFIGFILE='/etc/cronwatch.conf'
 
 ###############################################################################
 # Exception class(es)
@@ -101,12 +107,38 @@ def filter_text(rx, fh):
 
     return results
         
+def read_config(config_file = None):
+    '''Read the configuration file'''
+    config = simpleconfig.Config()
 
+    config.defaults.required = None
+    config.defaults.whitelist = None
+    config.defaults.blacklist = '.*'
+    config.defaults.exit_codes = 0
+    config.defaults.email = 'root'
+    config.defaults.email_maxsize = 4096
+    config.defaults.email_success = False
+    config.defaults.logfile = None
+
+    if not config_file is None:
+        config.read(config_file, required = True)
+    else:
+        config.read(CONFIGFILE)
+
+    for sec in config:
+        for s in sec:
+            if s.get_name() not in ['required', 'whitelist', 'blacklist',
+                                    'exit_codes', 'email', 'email_maxsize',
+                                    'email_success', 'logfile']:
+                raise Error('unknown option %s in section %s' %
+                            (s.get_name(), sec.get_name()))
+
+    return config
 
 ###############################################################################
 # Watch function
 ###############################################################################
-def watch(config = None, tag = None):
+def watch(args, config = None, tag = None):
     '''Watch a job and capture output'''
 
 ###############################################################################
@@ -132,7 +164,7 @@ def main(argv):
     if len(args) == 1:
         raise Error('missing command line argument: executable')
 
-    watch(config = options.config, tag = options.tag)
+    watch(args, config = options.config, tag = options.tag)
 
 ###############################################################################
 # Python main calling code
