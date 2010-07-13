@@ -66,8 +66,8 @@ If whitelist is specified, then the every line of output is matches against the 
 
 If both whitelist and blacklist are specified, then the output is first tested against whitelist. If it passes, it is then tested against blacklist. For example, if whitelist is `success` and blacklist is `not` then `not successful` will match both and thus be marked as an error.
 
-== exit_code ==
-|| *Name:* || `exit_code` ||
+== exit_codes ==
+|| *Name:* || `exit_codes` ||
 || *Default Value:* || `0` ||
 || *Description:* || A list of acceptable error code. Other error codes will result in an error. ||
 
