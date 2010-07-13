@@ -116,6 +116,82 @@ class TestFilterText(TestBase):
                 'invalid regex "(": unbalanced parenthesis',
                 cronwatch.filter_text, '(', self.tmp)
 
+class TestReadConfig(TestBase):
+    '''Test the read_config() function'''
+
+    def setUp(self):
+        self.old_config = cronwatch.CONFIGFILE
+        cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
+
+    def tearDown(self):
+        cronwatch.CONFIGFILE = self.old_config
+    
+    def test_defaults(self):
+        '''Should set defaults if no config is found'''
+        c = cronwatch.read_config()
+        
+        c.test.a = 1
+        self.assertEquals(None, c.test.required)
+        self.assertEquals('.*', c.test.blacklist)
+        self.assertEquals(None, c.test.whitelist)
+        self.assertEquals(0, c.test.exit_codes)
+        self.assertEquals('root', c.test.email)
+        self.assertEquals(4096, c.test.email_maxsize)
+        self.assertEquals(False, c.test.email_success)
+        self.assertEquals(None, c.test.logfile)
+
+    def test_default_configfile(self):
+        '''Should read the main configuration file if it exists'''
+        cf = tempfile.NamedTemporaryFile()
+        cf.write('[job]\n')
+        cf.write('exit_codes=10\n')
+        cf.write('exit_codes=101\n')
+        cf.seek(0)
+
+        cronwatch.CONFIGFILE = cf.name
+
+        c = cronwatch.read_config()
+
+        self.assertEquals([10, 101], c.job.exit_codes)
+
+    def test_configfile_command_line(self):
+        '''Should read an alternate config file'''
+        cf = tempfile.NamedTemporaryFile()
+        cf.write('[fake]\n')
+        cf.write('required = stuff\n')
+        cf.seek(0)
+
+        cronwatch.CONFIGFILE = cf.name
+
+        cf2 = tempfile.NamedTemporaryFile()
+        cf2.write('[job]\n')
+        cf2.write('exit_codes = 1\n')
+        cf2.seek(0)
+
+        c = cronwatch.read_config(config_file = cf2.name)
+
+        self.assertFalse(c.has_section('fake'))
+        self.assertEquals(1, c.job.exit_codes)
+
+    def test_require_configfile(self):
+        '''Should raise an exception if the config file doesn't exist'''
+        self.assertRaises(IOError, cronwatch.read_config, 
+                          'this_is_not_a_file.forsure')
+
+    def test_unknown_option(self):
+        '''Should raise an exception if it encounters an unknown configuration
+           option'''
+        cf = tempfile.NamedTemporaryFile()
+        cf.write('bad_option = stuff\n')
+        cf.seek(0)
+
+        self.assertRaisesError(cronwatch.Error,
+                'unknown option bad_option in section main',
+                cronwatch.read_config, cf.name)
+
+
+
+
 class TestWatch(TestBase):
     '''Test the watch() function'''
 
