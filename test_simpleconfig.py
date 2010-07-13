@@ -513,6 +513,18 @@ class TestConfig(TestBase):
         self.assertEquals(['c'], c.three.get_settings())
         self.assertEquals(3, c.three.c)
 
+    def test_read_single(self):
+        '''Should handle a single file'''
+        f = tempfile.NamedTemporaryFile()
+        f.write('[one]\n')
+        f.write('a=1\n')
+        f.seek(0)
+
+        c = Config()
+        c.read(f.name)
+
+        self.assertEquals(1, c.one.a)
+
     def test_read_required(self):
         '''Should only fail if the file can't be read if the required flag is
            set'''

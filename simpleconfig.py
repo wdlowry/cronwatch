@@ -349,6 +349,9 @@ class Config(object):
     def read(self, files, required = False):
         '''Read in config files and apply them to this object'''
 
+        if not isinstance(files, list):
+            files = [files]
+
         for fn in files:
             if required:
                 fp = open(fn)
