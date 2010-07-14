@@ -21,6 +21,7 @@
 
 import unittest
 import sys
+from StringIO import StringIO
 
 __all__ = ['TestBase']
 
@@ -62,8 +63,8 @@ class TestBase(unittest.TestCase):
             return
 
         self._capture = True
-        self._stdout_str = StringIO.StringIO()
-        self._stderr_str = StringIO.StringIO()
+        self._stdout_str = StringIO()
+        self._stderr_str = StringIO()
         self._stdout_old = sys.stdout
         self._stderr_old = sys.stderr
         sys.stdout = self._stdout_str
