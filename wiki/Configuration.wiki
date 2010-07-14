@@ -88,6 +88,11 @@ If both whitelist and blacklist are specified, then the output is first tested a
 || *Default Value:* || `false` ||
 || *Description:* || Determines whether an e-mail should be sent if the job was successful.||
 
+== email_sendmail ==
+|| *Name:* || `email_sendmail` ||
+|| *Default Value:* || `/usr/lib/sendmail` ||
+|| *Description:* || The location and parameters for sendmail.||
+
 == logfile ==
 || *Name:* || `logfile` ||
 || *Default Value:* || None ||
