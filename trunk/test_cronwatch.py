@@ -19,10 +19,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from test_base import TestBase
 import unittest
+from tempfile import NamedTemporaryFile
+from StringIO import StringIO
+from test_base import TestBase
+
 import cronwatch
-import tempfile
 
 ###############################################################################
 # Cronwatch functionality tests
@@ -87,7 +89,7 @@ class TestFilterText(TestBase):
     # regex can be a single regex or list
 
     def setUp(self):
-        self.tmp = tempfile.TemporaryFile()
+        self.tmp = StringIO()
 
     def tearDown(self):
         self.tmp.close()
@@ -143,7 +145,7 @@ class TestReadConfig(TestBase):
 
     def test_default_configfile(self):
         '''Should read the main configuration file if it exists'''
-        cf = tempfile.NamedTemporaryFile()
+        cf = NamedTemporaryFile()
         cf.write('[job]\n')
         cf.write('exit_codes=10\n')
         cf.write('exit_codes=101\n')
@@ -157,14 +159,14 @@ class TestReadConfig(TestBase):
 
     def test_configfile_command_line(self):
         '''Should read an alternate config file'''
-        cf = tempfile.NamedTemporaryFile()
+        cf = NamedTemporaryFile()
         cf.write('[fake]\n')
         cf.write('required = stuff\n')
         cf.seek(0)
 
         cronwatch.CONFIGFILE = cf.name
 
-        cf2 = tempfile.NamedTemporaryFile()
+        cf2 = NamedTemporaryFile()
         cf2.write('[job]\n')
         cf2.write('exit_codes = 1\n')
         cf2.seek(0)
@@ -182,7 +184,7 @@ class TestReadConfig(TestBase):
     def test_unknown_option(self):
         '''Should raise an exception if it encounters an unknown configuration
            option'''
-        cf = tempfile.NamedTemporaryFile()
+        cf = NamedTemporaryFile()
         cf.write('bad_option = stuff\n')
         cf.seek(0)
 
