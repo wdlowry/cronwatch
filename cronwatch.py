@@ -118,6 +118,7 @@ def read_config(config_file = None):
     config.defaults.email = 'root'
     config.defaults.email_maxsize = 4096
     config.defaults.email_success = False
+    config.defaults.email_sendmail = '/usr/lib/sendmail'
     config.defaults.logfile = None
 
     if not config_file is None:
@@ -129,7 +130,8 @@ def read_config(config_file = None):
         for s in sec:
             if s.get_name() not in ['required', 'whitelist', 'blacklist',
                                     'exit_codes', 'email', 'email_maxsize',
-                                    'email_success', 'logfile']:
+                                    'email_success', 'email_sendmail',
+                                    'logfile']:
                 raise Error('unknown option %s in section %s' %
                             (s.get_name(), sec.get_name()))
 

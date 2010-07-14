@@ -138,6 +138,7 @@ class TestReadConfig(TestBase):
         self.assertEquals('root', c.test.email)
         self.assertEquals(4096, c.test.email_maxsize)
         self.assertEquals(False, c.test.email_success)
+        self.assertEquals('/usr/lib/sendmail', c.test.email_sendmail)
         self.assertEquals(None, c.test.logfile)
 
     def test_default_configfile(self):
@@ -189,12 +190,8 @@ class TestReadConfig(TestBase):
                 'unknown option bad_option in section main',
                 cronwatch.read_config, cf.name)
 
-
-
-
 class TestWatch(TestBase):
     '''Test the watch() function'''
-
 
 if __name__ == '__main__':
     unittest.main()
