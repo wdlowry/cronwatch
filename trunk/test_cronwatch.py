@@ -20,8 +20,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import unittest
-from tempfile import NamedTemporaryFile
+import os
+from tempfile import NamedTemporaryFile, TemporaryFile, mkdtemp
 from StringIO import StringIO
+from shutil import rmtree
 from test_base import TestBase
 
 import cronwatch
@@ -191,6 +193,47 @@ class TestReadConfig(TestBase):
         self.assertRaisesError(cronwatch.Error,
                 'unknown option bad_option in section main',
                 cronwatch.read_config, cf.name)
+
+class TestCallSendmail(TestBase):
+    '''Test the call_sendmail() function'''
+    def setUp(self):
+        self.tempdir = mkdtemp()
+
+    def tearDown(self):
+        rmtree(self.tempdir)
+
+    def test_simple(self):
+        '''Should run sendmail and pass the file in as input'''
+        tmp = TemporaryFile()
+        tmp.write('output')
+        tmp.seek(0)
+
+        out = os.path.join(self.tempdir, 'sendmailoutput')
+        cronwatch.call_sendmail(['./test_script.sh', 'sendmail', out], tmp)
+
+        o = open(out).read()
+
+        self.assertEquals('output', o)
+
+    def test_sendmail_error_running(self):
+        '''Should raise an exception when sendmail can't be run'''
+        tmp = TemporaryFile()
+    
+        self.assertRaisesError(cronwatch.Error,
+                'could not run sendmail: ./this_is_not_a_script.forsure: ' + 
+                '[Errno 2] No such file or directory',
+                cronwatch.call_sendmail, ['./this_is_not_a_script.forsure'], 
+                tmp)
+
+    def test_sendmail_exitcode(self):
+        '''Should raise an exception if there's a non-standard exit code'''
+        tmp = TemporaryFile()
+
+        self.assertRaisesError(cronwatch.Error,
+                'sendmail returned exit code 10: ' + 
+                'stdout\nstderr\nstdout again\n',
+                cronwatch.call_sendmail, ['./test_script.sh', 'simple'], tmp)
+
 
 class TestWatch(TestBase):
     '''Test the watch() function'''

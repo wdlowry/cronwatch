@@ -137,6 +137,23 @@ def read_config(config_file = None):
 
     return config
 
+def call_sendmail(args, mail_file):
+    '''Call sendmail and pass in the mail via stdin'''
+
+    try:
+        process = subprocess.Popen(args, stdout = subprocess.PIPE,
+                                   stderr = subprocess.STDOUT,
+                                   stdin = mail_file.fileno())
+    except Exception, e:
+        raise Error('could not run sendmail: %s: %s' % (args[0], str(e)))
+    
+    r = process.wait()
+    (o, e) = process.communicate()
+
+    if r != 0:
+        raise Error('sendmail returned exit code %i: %s' % (r, o))
+
+
 ###############################################################################
 # Watch function
 ###############################################################################

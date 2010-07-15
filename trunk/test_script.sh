@@ -37,6 +37,10 @@ case $1 in
         echo 'timeout'
         exit 0
         ;;
+    sendmail)
+        cat > "$2"
+        exit 0
+        ;;
     *)
         echo "usage: $0 TESTCASE"
         ;;
