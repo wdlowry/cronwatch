@@ -23,8 +23,8 @@ import sys
 import os
 import signal
 from optparse import OptionParser
+from tempfile import TemporaryFile
 import subprocess
-import tempfile
 import time
 import re
 import simpleconfig
@@ -54,7 +54,7 @@ def run(args, timeout = -1):
        Returns a tuple with a handle to the output and the error code'''
 
     # Create a temporary file for the output
-    output_file = tempfile.TemporaryFile()
+    output_file = TemporaryFile()
 
     try:
         process = subprocess.Popen(args, stdout = output_file,
@@ -137,18 +137,25 @@ def read_config(config_file = None):
 
     return config
 
-def call_sendmail(args, mail_file):
+def call_sendmail(args, mail):
     '''Call sendmail and pass in the mail via stdin'''
+    
+    # Write the mail to a file
+    mail_file = TemporaryFile()
+    mail_file.write(mail);
+    mail_file.flush()
+    mail_file.seek(0)
 
     try:
         process = subprocess.Popen(args, stdout = subprocess.PIPE,
                                    stderr = subprocess.STDOUT,
                                    stdin = mail_file.fileno())
     except Exception, e:
+        del mail_file
         raise Error('could not run sendmail: %s: %s' % (args[0], str(e)))
     
-    r = process.wait()
     (o, e) = process.communicate()
+    r = process.returncode
 
     if r != 0:
         raise Error('sendmail returned exit code %i: %s' % (r, o))
