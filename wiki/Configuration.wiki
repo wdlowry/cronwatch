@@ -22,7 +22,7 @@ Here is an example configuration file. See the configuration options below for m
 [defaults]
 
 # Send an e-mail to root on the local machine when something messes up
-email = root
+email_to = root
 
 # Truncate the e-mail if it's bigger than 1M
 email_maxsize = 1048576
@@ -71,10 +71,16 @@ If both whitelist and blacklist are specified, then the output is first tested a
 || *Default Value:* || `0` ||
 || *Description:* || A list of acceptable error code. Other error codes will result in an error. ||
 
-== email ==
-|| *Name:* || `email` ||
+== email_to ==
+|| *Name:* || `email_to` ||
 || *Default Value:* || `root` ||
-|| *Description:* || An e-mail address to send out put to. This address can be a local account, for example, `root`, the default. ||
+|| *Description:* || An e-mail address to which to send output. This address can be a local account, for example, `root`, the default. ||
+
+== email_from ==
+|| *Name:* || `email_from` ||
+|| *Default Value:* || None ||
+|| *Description:* || An e-mail address from which to send output. If this setting is not specified (the default), then it will be generated in the format: User Name <username@hostname> ||
+
 
 == email_maxsize ==
 || *Name:* || `email_maxsize` ||
