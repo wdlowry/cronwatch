@@ -204,36 +204,27 @@ class TestCallSendmail(TestBase):
 
     def test_simple(self):
         '''Should run sendmail and pass the file in as input'''
-        tmp = TemporaryFile()
-        tmp.write('output')
-        tmp.seek(0)
-
         out = os.path.join(self.tempdir, 'sendmailoutput')
-        cronwatch.call_sendmail(['./test_script.sh', 'sendmail', out], tmp)
+        cronwatch.call_sendmail(['./test_script.sh', 'sendmail', out], 'output')
 
         o = open(out).read()
-
         self.assertEquals('output', o)
 
     def test_sendmail_error_running(self):
         '''Should raise an exception when sendmail can't be run'''
-        tmp = TemporaryFile()
-    
         self.assertRaisesError(cronwatch.Error,
                 'could not run sendmail: ./this_is_not_a_script.forsure: ' + 
                 '[Errno 2] No such file or directory',
                 cronwatch.call_sendmail, ['./this_is_not_a_script.forsure'], 
-                tmp)
+                'output')
 
     def test_sendmail_exitcode(self):
         '''Should raise an exception if there's a non-standard exit code'''
-        tmp = TemporaryFile()
-
         self.assertRaisesError(cronwatch.Error,
                 'sendmail returned exit code 10: ' + 
                 'stdout\nstderr\nstdout again\n',
-                cronwatch.call_sendmail, ['./test_script.sh', 'simple'], tmp)
-
+                cronwatch.call_sendmail, ['./test_script.sh', 'simple'],
+                'outputtmp')
 
 class TestWatch(TestBase):
     '''Test the watch() function'''
