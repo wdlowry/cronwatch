@@ -28,6 +28,10 @@ import subprocess
 import time
 import re
 import simpleconfig
+import shlex
+from email.mime.text import MIMEText
+from getpass import getuser
+from socket import getfqdn, gethostname
 
 ###############################################################################
 # Global variables
@@ -115,7 +119,8 @@ def read_config(config_file = None):
     config.defaults.whitelist = None
     config.defaults.blacklist = '.*'
     config.defaults.exit_codes = 0
-    config.defaults.email = 'root'
+    config.defaults.email_to = 'root'
+    config.defaults.email_from = None
     config.defaults.email_maxsize = 4096
     config.defaults.email_success = False
     config.defaults.email_sendmail = '/usr/lib/sendmail'
@@ -129,9 +134,9 @@ def read_config(config_file = None):
     for sec in config:
         for s in sec:
             if s.get_name() not in ['required', 'whitelist', 'blacklist',
-                                    'exit_codes', 'email', 'email_maxsize',
-                                    'email_success', 'email_sendmail',
-                                    'logfile']:
+                                    'exit_codes', 'email_to', 'email_from',
+                                    'email_maxsize', 'email_success',
+                                    'email_sendmail', 'logfile']:
                 raise Error('unknown option %s in section %s' %
                             (s.get_name(), sec.get_name()))
 
@@ -159,6 +164,19 @@ def call_sendmail(args, mail):
 
     if r != 0:
         raise Error('sendmail returned exit code %i: %s' % (r, o))
+
+def send_mail(sendmail, to_addr, subject, text, from_addr = None):
+    '''Format and send an e-mail'''
+
+    if from_addr is None:
+        from_addr = '%s@%s' % (getuser(), getfqdn(gethostname()))
+
+    msg = MIMEText(text)
+    msg['To'] = to_addr
+    msg['From'] = from_addr
+    msg['Subject'] = subject
+
+    call_sendmail(shlex.split(sendmail), msg.as_string())
 
 
 ###############################################################################
