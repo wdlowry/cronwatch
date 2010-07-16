@@ -65,6 +65,8 @@ class TestSetting(TestBase):
         self.assertEqual(False, Setting.auto_type('fAlse'))
         self.assertEqual(False, Setting.auto_type('nO'))
         self.assertEqual(False, Setting.auto_type('oFf'))
+        self.assertEqual('none', Setting.auto_type("'none'"))
+        self.assertEqual('none', Setting.auto_type('"none"'))
 
         # Check to make sure we're checking the whole string
         self.assertEqual('none1', Setting.auto_type('none1'))

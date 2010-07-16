@@ -95,6 +95,9 @@ class Setting(object):
         if re.match(r'-?[0-9]+$', raw): return int(raw)
         if re.match(r'(?i)(true|yes|on)$', raw): return True
         if re.match(r'(?i)(false|no|off)$', raw): return False
+
+        r = re.match(r'''('|")(.*)\1$''', raw)
+        if r: return r.group(2)
         
         # We don't know what it is, so return it as is
         return raw
