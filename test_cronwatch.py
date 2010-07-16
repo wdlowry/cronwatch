@@ -232,7 +232,8 @@ class TestCallSendmail(TestBase):
 class TestSendMail(TestBase):
     '''Test the send_mail() function
 
-       send_mail(sendmail, to_addr, subject, text, from_addr = None)
+       send_mail(sendmail, to_addr, subject, text, from_addr = None,
+                 html = None)
     '''
     def call_sendmail(self, *args):
         self.args = args
@@ -271,11 +272,26 @@ class TestSendMail(TestBase):
 
     def test_auto_from(self):
         '''Should auto generate the from user'''
-        cronwatch.send_mail('sendmail', 'to@domain.com', 'my subject',
-                            'e-mail body\nmore text')
+        cronwatch.send_mail('sendmail', 'to', 'subject', 'text')
         from_addr = '%s@%s' % (getuser(), getfqdn(gethostname()))
         lines = self.args[1].split('\n')
         self.assertEquals('From: %s' % from_addr, lines[4])
+
+    def test_html(self):
+        '''Should create a html part'''
+        cronwatch.send_mail('sendmail', 'to', 'subject', 'text', html = 'html')
+        
+        lines = self.args[1].split('\n')
+        self.assertEquals('Content-Type: multipart/alternative',
+                          lines[0].split(';')[0])
+        self.assertEquals('', lines[5])
+        self.assertEquals('Content-Type: text/plain; charset="us-ascii"',
+                          lines[7])
+        self.assertEquals('text', lines[11])
+        self.assertEquals('Content-Type: text/html; charset="us-ascii"',
+                          lines[13])
+        self.assertEquals('html', lines[17])
+
 
 class TestWatch(TestBase):
     '''Test the watch() function'''

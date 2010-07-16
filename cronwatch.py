@@ -30,6 +30,7 @@ import re
 import simpleconfig
 import shlex
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from getpass import getuser
 from socket import getfqdn, gethostname
 
@@ -165,16 +166,24 @@ def call_sendmail(args, mail):
     if r != 0:
         raise Error('sendmail returned exit code %i: %s' % (r, o))
 
-def send_mail(sendmail, to_addr, subject, text, from_addr = None):
+def send_mail(sendmail, to_addr, subject, text, from_addr = None, html = None):
     '''Format and send an e-mail'''
 
     if from_addr is None:
         from_addr = '%s@%s' % (getuser(), getfqdn(gethostname()))
 
-    msg = MIMEText(text)
+    if html is None:
+        msg = MIMEText(text)
+    else:
+        msg = MIMEMultipart('alternative')
+
     msg['To'] = to_addr
     msg['From'] = from_addr
     msg['Subject'] = subject
+
+    if not html is None:
+        msg.attach(MIMEText(text, 'plain'))
+        msg.attach(MIMEText(html, 'html'))
 
     call_sendmail(shlex.split(sendmail), msg.as_string())
 
