@@ -25,6 +25,8 @@ from tempfile import NamedTemporaryFile, TemporaryFile, mkdtemp
 from StringIO import StringIO
 from shutil import rmtree
 from test_base import TestBase
+from getpass import getuser
+from socket import getfqdn, gethostname
 
 import cronwatch
 
@@ -139,7 +141,8 @@ class TestReadConfig(TestBase):
         self.assertEquals('.*', c.test.blacklist)
         self.assertEquals(None, c.test.whitelist)
         self.assertEquals(0, c.test.exit_codes)
-        self.assertEquals('root', c.test.email)
+        self.assertEquals('root', c.test.email_to)
+        self.assertEquals(None, c.test.email_from)
         self.assertEquals(4096, c.test.email_maxsize)
         self.assertEquals(False, c.test.email_success)
         self.assertEquals('/usr/lib/sendmail', c.test.email_sendmail)
@@ -225,6 +228,54 @@ class TestCallSendmail(TestBase):
                 'stdout\nstderr\nstdout again\n',
                 cronwatch.call_sendmail, ['./test_script.sh', 'simple'],
                 'outputtmp')
+
+class TestSendMail(TestBase):
+    '''Test the send_mail() function
+
+       send_mail(sendmail, to_addr, subject, text, from_addr = None)
+    '''
+    def call_sendmail(self, *args):
+        self.args = args
+
+    def setUp(self):
+        self.args = None
+        self.old_call_sendmail = cronwatch.call_sendmail
+        cronwatch.call_sendmail = self.call_sendmail
+
+    def tearDown(self):
+        cronwatch.call_sendmail = self.old_call_sendmail
+
+    def test_call_sendmail(self):
+        '''Should parse the sendmail command line and pass it to
+           call_sendmail'''
+        cronwatch.send_mail('''/usr/bin/sendmail 'this is a "test"' "*"''',
+                            'to', 'subject', 'text')
+
+        self.assertEquals(self.args[0], ['/usr/bin/sendmail', 
+                                         'this is a "test"', '*'])
+
+    def test_formatted_mail(self):
+        '''Should prepare an e-mail message'''
+        cronwatch.send_mail('sendmail', 'to@domain.com', 'my subject',
+                            'e-mail body\nmore text', 'from@domain.com')
+        
+        lines = self.args[1].split('\n')
+        self.assertEquals('Content-Type: text/plain; charset="us-ascii"',
+                          lines[0])
+        self.assertEquals('To: to@domain.com', lines[3])
+        self.assertEquals('From: from@domain.com', lines[4])
+        self.assertEquals('Subject: my subject', lines[5])
+        self.assertEquals('', lines[6])
+        self.assertEquals('e-mail body', lines[7])
+        self.assertEquals('more text', lines[8])
+
+    def test_auto_from(self):
+        '''Should auto generate the from user'''
+        cronwatch.send_mail('sendmail', 'to@domain.com', 'my subject',
+                            'e-mail body\nmore text')
+        from_addr = '%s@%s' % (getuser(), getfqdn(gethostname()))
+        lines = self.args[1].split('\n')
+        self.assertEquals('From: %s' % from_addr, lines[4])
 
 class TestWatch(TestBase):
     '''Test the watch() function'''
