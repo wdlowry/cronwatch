@@ -111,6 +111,74 @@ def filter_text(rx, fh):
         i += 1
 
     return results
+
+def compile_re(regex):
+    '''Compile a regex or list of regexes'''
+
+    if regex is None:
+        return []
+
+    if not isinstance(regex, list):
+        regex = [regex]
+
+    l = []
+    for r in regex:
+        try:
+            l.append(re.compile(r))
+        except TypeError, e:
+            raise Error('must be a string or list of strings')
+
+    return l
+
+
+def verify_config(config):
+    '''Make sure the configuration is valid'''
+    def err(section, setting, error):
+        raise Error('configuration error: %s.%s: %s' %
+                    (section, setting, error))
+
+    for sec in config:
+        for s in sec:
+            if s.get_name() not in ['required', 'whitelist', 'blacklist',
+                                    'exit_codes', 'email_to', 'email_from',
+                                    'email_maxsize', 'email_success',
+                                    'email_sendmail', 'logfile']:
+                err(sec.get_name(), s.get_name(), 'unknown option')
+        
+        # Verify the regular expressions lists
+        for s in ['required', 'whitelist', 'blacklist']:
+            try:
+                r = compile_re(sec.get_setting(s).get())
+            except Error, e:
+                raise e
+            except Exception, e:
+                raise Error('configuration error: ' +
+                    'could not compile %s.%s: %s' % (sec.get_name(), s, 
+                    str(e)))
+            
+            sec.get_setting(s).set(r)
+
+        # Handle the list of exit codes
+        if not isinstance(sec.exit_codes, list):
+            sec.exit_codes = [sec.exit_codes]
+
+        for i in sec.exit_codes:
+            if not isinstance(i, int):
+                raise Error(('configuration error: %s.exit_codes must be a ' + 
+                             'list of integer exit codes') % sec.get_name())
+
+        # Check the e-mail max size
+        if not isinstance(sec.email_maxsize, int):
+            raise Error(('configuration error: %s.email_maxsize must be an ' +
+                         'integer') % sec.get_name())
+
+        # Check strings
+        #for s in ['email_to', 'email_from', 'email_sendmail', 'logfile']:
+        #    if not isinstance(sec.get_setting(s).get(), str):
+        #        raise Error('configuration error: %s.%s must be a string' %
+        #                    (sec.get_name(), s))
+
+        
         
 def read_config(config_file = None):
     '''Read the configuration file'''
@@ -131,15 +199,6 @@ def read_config(config_file = None):
         config.read(config_file, required = True)
     else:
         config.read(CONFIGFILE)
-
-    for sec in config:
-        for s in sec:
-            if s.get_name() not in ['required', 'whitelist', 'blacklist',
-                                    'exit_codes', 'email_to', 'email_from',
-                                    'email_maxsize', 'email_success',
-                                    'email_sendmail', 'logfile']:
-                raise Error('unknown option %s in section %s' %
-                            (s.get_name(), sec.get_name()))
 
     return config
 
