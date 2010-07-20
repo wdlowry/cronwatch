@@ -27,7 +27,6 @@ from tempfile import TemporaryFile
 import subprocess
 import time
 import re
-import simpleconfig
 import shlex
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
