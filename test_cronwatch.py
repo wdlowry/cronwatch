@@ -29,7 +29,6 @@ from getpass import getuser
 from socket import getfqdn, gethostname
 
 
-from simpleconfig import Config
 import cronwatch
 
 ###############################################################################
@@ -150,151 +149,151 @@ class CompileRe(TestBase):
                 'must be a string or list of strings',
                 cronwatch.compile_re, 1)
 
-class VerifyConfig(TestBase):
-    '''Tests for verify_config()'''
-    def config(self):
-        config = Config()
-        config.defaults.required = None
-        config.defaults.whitelist = None
-        config.defaults.blacklist = '.*'
-        config.defaults.exit_codes = 0
-        config.defaults.email_to = 'root'
-        config.defaults.email_from = None
-        config.defaults.email_maxsize = 4096
-        config.defaults.email_success = False
-        config.defaults.email_sendmail = '/usr/lib/sendmail'
-        config.defaults.logfile = None
+#class VerifyConfig(TestBase):
+#    '''Tests for verify_config()'''
+#    def config(self):
+#        config = Config()
+#        config.defaults.required = None
+#        config.defaults.whitelist = None
+#        config.defaults.blacklist = '.*'
+#        config.defaults.exit_codes = 0
+#        config.defaults.email_to = 'root'
+#        config.defaults.email_from = None
+#        config.defaults.email_maxsize = 4096
+#        config.defaults.email_success = False
+#        config.defaults.email_sendmail = '/usr/lib/sendmail'
+#        config.defaults.logfile = None
+#
+#        return config
+#
+#    def test_unknown_option(self):
+#        '''Should raise an exception if it encounters an unknown configuration
+#           option'''
+#        c = Config()
+#        c.main.bad_option = 'stuff'
+#
+#        self.assertRaisesError(cronwatch.Error,
+#                'configuration error: main.bad_option: unknown option',
+#                cronwatch.verify_config, c)
+#
+#    def test_regexes(self):
+#        '''Should verify and normalize the regular expresions'''
+#        for r in ['required', 'whitelist', 'blacklist']:
+#            c = self.config()
+#            c.set_setting('main', r, '(')
+#            self.assertRaisesError(cronwatch.Error,
+#                    ('configuration error: could not compile main.%s: ' +
+#                    'unbalanced parenthesis') % r,
+#                    cronwatch.verify_config, c)
+#            c.set_setting('main', r, 'regex')
+#            cronwatch.verify_config(c)
+#            self.assertTrue(c.get_setting('main', r)[0].match)
+#    
+#    def test_exit_codes(self):
+#        '''Should verify and normalize the exit_codes'''
+#        c = self.config()
+#        c.main.exit_codes = 1
+#        cronwatch.verify_config(c)
+#        self.assertEquals([1], c.main.exit_codes)
+#
+#        c.main.exit_codes = [1, 2]
+#        cronwatch.verify_config(c)
+#        self.assertEquals([1, 2], c.main.exit_codes)
+#
+#        c.main.exit_codes = [1, 'a']
+#        self.assertRaisesError(cronwatch.Error, 
+#                'configuration error: ' +
+#                'main.exit_codes must be a list of integer exit codes',
+#                cronwatch.verify_config, c)
+#
+#    def test_email_maxsize(self):
+#        '''Should verify it is a integer'''
+#        c = self.config()
+#        c.main.email_maxsize = 10
+#        cronwatch.verify_config(c)
+#        self.assertEquals(10, c.main.email_maxsize)
+#
+#        c.main.email_maxsize = 'a'
+#        self.assertRaisesError(cronwatch.Error,
+#                'configuration error: main.email_maxsize must be an integer',
+#                cronwatch.verify_config, c)
+#
+#    #def test_strings(self):
+#    #    '''Should verify that certain options are strings'''
+#    #    for s in ['email_to', 'email_from', 'email_sendmail', 'logfile']:
+#    #        c = self.config()
+#    #        c.set_setting('main', s, 1)
+#    #        self.assertRaisesError(cronwatch.Error,
+#    #                'configuration error: main.%s must be a string' % s,
+#    #                cronwatch.verify_config, c)
+#    #        c.set_setting('main', s, 'value')
+#    #        cronwatch.verify_config(c)
+#    #        self.assertEqual('value', c.get_setting(main, 's'))
+#
 
-        return config
-
-    def test_unknown_option(self):
-        '''Should raise an exception if it encounters an unknown configuration
-           option'''
-        c = Config()
-        c.main.bad_option = 'stuff'
-
-        self.assertRaisesError(cronwatch.Error,
-                'configuration error: main.bad_option: unknown option',
-                cronwatch.verify_config, c)
-
-    def test_regexes(self):
-        '''Should verify and normalize the regular expresions'''
-        for r in ['required', 'whitelist', 'blacklist']:
-            c = self.config()
-            c.set_setting('main', r, '(')
-            self.assertRaisesError(cronwatch.Error,
-                    ('configuration error: could not compile main.%s: ' +
-                    'unbalanced parenthesis') % r,
-                    cronwatch.verify_config, c)
-            c.set_setting('main', r, 'regex')
-            cronwatch.verify_config(c)
-            self.assertTrue(c.get_setting('main', r)[0].match)
-    
-    def test_exit_codes(self):
-        '''Should verify and normalize the exit_codes'''
-        c = self.config()
-        c.main.exit_codes = 1
-        cronwatch.verify_config(c)
-        self.assertEquals([1], c.main.exit_codes)
-
-        c.main.exit_codes = [1, 2]
-        cronwatch.verify_config(c)
-        self.assertEquals([1, 2], c.main.exit_codes)
-
-        c.main.exit_codes = [1, 'a']
-        self.assertRaisesError(cronwatch.Error, 
-                'configuration error: ' +
-                'main.exit_codes must be a list of integer exit codes',
-                cronwatch.verify_config, c)
-
-    def test_email_maxsize(self):
-        '''Should verify it is a integer'''
-        c = self.config()
-        c.main.email_maxsize = 10
-        cronwatch.verify_config(c)
-        self.assertEquals(10, c.main.email_maxsize)
-
-        c.main.email_maxsize = 'a'
-        self.assertRaisesError(cronwatch.Error,
-                'configuration error: main.email_maxsize must be an integer',
-                cronwatch.verify_config, c)
-
-    #def test_strings(self):
-    #    '''Should verify that certain options are strings'''
-    #    for s in ['email_to', 'email_from', 'email_sendmail', 'logfile']:
-    #        c = self.config()
-    #        c.set_setting('main', s, 1)
-    #        self.assertRaisesError(cronwatch.Error,
-    #                'configuration error: main.%s must be a string' % s,
-    #                cronwatch.verify_config, c)
-    #        c.set_setting('main', s, 'value')
-    #        cronwatch.verify_config(c)
-    #        self.assertEqual('value', c.get_setting(main, 's'))
-
-
-class TestReadConfig(TestBase):
-    '''Test the read_config() function'''
-
-    def setUp(self):
-        self.old_config = cronwatch.CONFIGFILE
-        cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
-
-    def tearDown(self):
-        cronwatch.CONFIGFILE = self.old_config
-    
-    def test_defaults(self):
-        '''Should set defaults if no config is found'''
-        c = cronwatch.read_config()
-        
-        c.test.a = 1
-        self.assertEquals(None, c.test.required)
-        self.assertEquals('.*', c.test.blacklist)
-        self.assertEquals(None, c.test.whitelist)
-        self.assertEquals(0, c.test.exit_codes)
-        self.assertEquals('root', c.test.email_to)
-        self.assertEquals(None, c.test.email_from)
-        self.assertEquals(4096, c.test.email_maxsize)
-        self.assertEquals(False, c.test.email_success)
-        self.assertEquals('/usr/lib/sendmail', c.test.email_sendmail)
-        self.assertEquals(None, c.test.logfile)
-
-    def test_default_configfile(self):
-        '''Should read the main configuration file if it exists'''
-        cf = NamedTemporaryFile()
-        cf.write('[job]\n')
-        cf.write('exit_codes=10\n')
-        cf.write('exit_codes=101\n')
-        cf.seek(0)
-
-        cronwatch.CONFIGFILE = cf.name
-
-        c = cronwatch.read_config()
-
-        self.assertEquals([10, 101], c.job.exit_codes)
-
-    def test_configfile_command_line(self):
-        '''Should read an alternate config file'''
-        cf = NamedTemporaryFile()
-        cf.write('[fake]\n')
-        cf.write('required = stuff\n')
-        cf.seek(0)
-
-        cronwatch.CONFIGFILE = cf.name
-
-        cf2 = NamedTemporaryFile()
-        cf2.write('[job]\n')
-        cf2.write('exit_codes = 1\n')
-        cf2.seek(0)
-
-        c = cronwatch.read_config(config_file = cf2.name)
-
-        self.assertFalse(c.has_section('fake'))
-        self.assertEquals(1, c.job.exit_codes)
-
-    def test_require_configfile(self):
-        '''Should raise an exception if the config file doesn't exist'''
-        self.assertRaises(IOError, cronwatch.read_config, 
-                          'this_is_not_a_file.forsure')
+#class TestReadConfig(TestBase):
+#    '''Test the read_config() function'''
+#
+#    def setUp(self):
+#        self.old_config = cronwatch.CONFIGFILE
+#        cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
+#
+#    def tearDown(self):
+#        cronwatch.CONFIGFILE = self.old_config
+#    
+#    def test_defaults(self):
+#        '''Should set defaults if no config is found'''
+#        c = cronwatch.read_config()
+#        
+#        c.test.a = 1
+#        self.assertEquals(None, c.test.required)
+#        self.assertEquals('.*', c.test.blacklist)
+#        self.assertEquals(None, c.test.whitelist)
+#        self.assertEquals(0, c.test.exit_codes)
+#        self.assertEquals('root', c.test.email_to)
+#        self.assertEquals(None, c.test.email_from)
+#        self.assertEquals(4096, c.test.email_maxsize)
+#        self.assertEquals(False, c.test.email_success)
+#        self.assertEquals('/usr/lib/sendmail', c.test.email_sendmail)
+#        self.assertEquals(None, c.test.logfile)
+#
+#    def test_default_configfile(self):
+#        '''Should read the main configuration file if it exists'''
+#        cf = NamedTemporaryFile()
+#        cf.write('[job]\n')
+#        cf.write('exit_codes=10\n')
+#        cf.write('exit_codes=101\n')
+#        cf.seek(0)
+#
+#        cronwatch.CONFIGFILE = cf.name
+#
+#        c = cronwatch.read_config()
+#
+#        self.assertEquals([10, 101], c.job.exit_codes)
+#
+#    def test_configfile_command_line(self):
+#        '''Should read an alternate config file'''
+#        cf = NamedTemporaryFile()
+#        cf.write('[fake]\n')
+#        cf.write('required = stuff\n')
+#        cf.seek(0)
+#
+#        cronwatch.CONFIGFILE = cf.name
+#
+#        cf2 = NamedTemporaryFile()
+#        cf2.write('[job]\n')
+#        cf2.write('exit_codes = 1\n')
+#        cf2.seek(0)
+#
+#        c = cronwatch.read_config(config_file = cf2.name)
+#
+#        self.assertFalse(c.has_section('fake'))
+#        self.assertEquals(1, c.job.exit_codes)
+#
+#    def test_require_configfile(self):
+#        '''Should raise an exception if the config file doesn't exist'''
+#        self.assertRaises(IOError, cronwatch.read_config, 
+#                          'this_is_not_a_file.forsure')
 
 class TestCallSendmail(TestBase):
     '''Test the call_sendmail() function'''
