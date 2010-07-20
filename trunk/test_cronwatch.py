@@ -27,6 +27,8 @@ from shutil import rmtree
 from test_base import TestBase
 from getpass import getuser
 from socket import getfqdn, gethostname
+from validate import VdtTypeError, VdtValueError
+from configobj import get_extra_values
 
 
 import cronwatch
@@ -123,71 +125,48 @@ class TestFilterText(TestBase):
                 'invalid regex "(": unbalanced parenthesis',
                 cronwatch.filter_text, '(', self.tmp)
 
-class CompileRe(TestBase):
-    '''Tests for compile_re()
+class TestIsRegex(TestBase):
+    def test_not_string(self):
+        '''Should raise VdtTypeError if it's not a string'''
+        self.assertRaises(VdtTypeError, cronwatch.is_regex, 1)
 
-       list_of_re = compile_re(regex)
-       where re is None, a string, or a list of strings'''
-    
-    def test_none(self):
-        '''Should return an empty list'''
-        self.assertEqual([], cronwatch.compile_re(None))
+    def test_bad_regex(self):
+        '''Should raise VdtValueError if it's not a valid regex'''
+        self.assertRaisesError(cronwatch.VdtValueMsgError,
+                '''invalid regular expression: (: unbalanced parenthesis''',
+               cronwatch.is_regex, '(')
 
-    def test_string(self):
-        '''Should compile a string into a re object'''
-        self.assertTrue(cronwatch.compile_re('regex')[0].match)
+    def test_return(self):
+        '''Should return a valid regular expression object'''
+        self.assertTrue(cronwatch.is_regex('reg').match)
 
+class TestIsRegexList(TestBase):
+    def test_not_list(self):
+        '''Should raise VdtTypeError if not a list'''
+        self.assertRaises(VdtTypeError, cronwatch.is_regex_list, 'reg')
+
+    def test_regex(self):
+        '''Should return a list of regex objects'''
+        self.assertTrue(cronwatch.is_regex_list(['reg', 'reg'])[0].match)
+
+class TestForceRegexList(TestBase):
     def test_list(self):
-        '''Should compile a list of strings'''
-        r = cronwatch.compile_re(['a', 'b'])
-        self.assertTrue(r[0].match)
-        self.assertTrue(r[1].match)
+        '''Should return a list of regex objects if already in list form'''
+        self.assertTrue(cronwatch.force_regex_list(['reg', 'reg'])[0].match)
 
-    def test_invalid_type(self):
-        '''Should raise an exception if the type is unknown'''
-        self.assertRaisesError(cronwatch.Error,
-                'must be a string or list of strings',
-                cronwatch.compile_re, 1)
+    def test_not_list(self):
+        '''Should create a list if not a list already'''
+        self.assertTrue(cronwatch.force_regex_list('reg')[0].match)
 
-#class VerifyConfig(TestBase):
-#    '''Tests for verify_config()'''
-#    def config(self):
-#        config = Config()
-#        config.defaults.required = None
-#        config.defaults.whitelist = None
-#        config.defaults.blacklist = '.*'
-#        config.defaults.exit_codes = 0
-#        config.defaults.email_to = 'root'
-#        config.defaults.email_from = None
-#        config.defaults.email_maxsize = 4096
-#        config.defaults.email_success = False
-#        config.defaults.email_sendmail = '/usr/lib/sendmail'
-#        config.defaults.logfile = None
-#
-#        return config
-#
-#    def test_unknown_option(self):
-#        '''Should raise an exception if it encounters an unknown configuration
-#           option'''
-#        c = Config()
-#        c.main.bad_option = 'stuff'
-#
-#        self.assertRaisesError(cronwatch.Error,
-#                'configuration error: main.bad_option: unknown option',
-#                cronwatch.verify_config, c)
-#
-#    def test_regexes(self):
-#        '''Should verify and normalize the regular expresions'''
-#        for r in ['required', 'whitelist', 'blacklist']:
-#            c = self.config()
-#            c.set_setting('main', r, '(')
-#            self.assertRaisesError(cronwatch.Error,
-#                    ('configuration error: could not compile main.%s: ' +
-#                    'unbalanced parenthesis') % r,
-#                    cronwatch.verify_config, c)
-#            c.set_setting('main', r, 'regex')
-#            cronwatch.verify_config(c)
-#            self.assertTrue(c.get_setting('main', r)[0].match)
+class TestForceIntList(TestBase):
+    def test_list(self):
+        '''Should return a list of integers if already in list form'''
+        self.assertEquals([1, 2], cronwatch.force_int_list(['1', '2']))
+
+    def test_not_list(self):
+        '''Should create a list if not a list already'''
+        self.assertEquals([1], cronwatch.force_int_list(1))
+
 #    
 #    def test_exit_codes(self):
 #        '''Should verify and normalize the exit_codes'''
@@ -231,46 +210,84 @@ class CompileRe(TestBase):
 #    #        self.assertEqual('value', c.get_setting(main, 's'))
 #
 
-#class TestReadConfig(TestBase):
-#    '''Test the read_config() function'''
-#
-#    def setUp(self):
-#        self.old_config = cronwatch.CONFIGFILE
-#        cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
-#
-#    def tearDown(self):
-#        cronwatch.CONFIGFILE = self.old_config
-#    
-#    def test_defaults(self):
-#        '''Should set defaults if no config is found'''
-#        c = cronwatch.read_config()
-#        
-#        c.test.a = 1
-#        self.assertEquals(None, c.test.required)
-#        self.assertEquals('.*', c.test.blacklist)
-#        self.assertEquals(None, c.test.whitelist)
-#        self.assertEquals(0, c.test.exit_codes)
-#        self.assertEquals('root', c.test.email_to)
-#        self.assertEquals(None, c.test.email_from)
-#        self.assertEquals(4096, c.test.email_maxsize)
-#        self.assertEquals(False, c.test.email_success)
-#        self.assertEquals('/usr/lib/sendmail', c.test.email_sendmail)
-#        self.assertEquals(None, c.test.logfile)
-#
-#    def test_default_configfile(self):
-#        '''Should read the main configuration file if it exists'''
-#        cf = NamedTemporaryFile()
-#        cf.write('[job]\n')
-#        cf.write('exit_codes=10\n')
-#        cf.write('exit_codes=101\n')
-#        cf.seek(0)
-#
-#        cronwatch.CONFIGFILE = cf.name
-#
-#        c = cronwatch.read_config()
-#
-#        self.assertEquals([10, 101], c.job.exit_codes)
-#
+class TestReadConfig(TestBase):
+    '''Test the read_config() function'''
+
+    def setUp(self):
+        self.old_config = cronwatch.CONFIGFILE
+        cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
+
+    def tearDown(self):
+        cronwatch.CONFIGFILE = self.old_config
+
+    def test_parse_error(self):
+        '''Should raise an error when the config file is bad'''
+        cf = NamedTemporaryFile()
+        cf.write('[test\n')
+        cf.seek(0)
+        self.assertRaisesError(cronwatch.Error,
+                'could not read %s: Invalid line at line "1".' % cf.name, 
+                cronwatch.read_config, cf.name)
+
+    def test_defaults(self):
+        '''Should set defaults if no config is found'''
+        cf = NamedTemporaryFile()
+        cf.write('[test]\n')
+        cf.seek(0)
+        c = cronwatch.read_config(cf.name)
+        
+        self.assertEquals(None, c['test']['required'])
+        self.assertTrue(c['test']['blacklist'][0].match)
+        self.assertEquals(None, c['test']['whitelist'])
+        self.assertEquals([0], c['test']['exit_codes'])
+        self.assertEquals('root', c['test']['email_to'])
+        self.assertEquals(None, c['test']['email_from'])
+        self.assertEquals(4096, c['test']['email_maxsize'])
+        self.assertEquals(False, c['test']['email_success'])
+        self.assertEquals('/usr/lib/sendmail', c['test']['email_sendmail'])
+        self.assertEquals(None, c['test']['logfile'])
+
+        self.assertEquals([], get_extra_values(c))
+
+    def test_extra_settings(self):
+        '''Should fail if there are extra configuration settings'''
+        cf = NamedTemporaryFile()
+        cf.write('[test]\n')
+        cf.write('a=1\n')
+        cf.write('b=2\n')
+        cf.seek(0)
+
+        self.assertRaisesError(cronwatch.Error,
+                'unknown setting in configuration: a',
+                cronwatch.read_config, cf.name)
+
+    def test_configuration_error(self):
+        '''TODO'''
+
+    def test_regexes(self):
+        '''Should verify and normalize the regular expresions'''
+        for r in ['required', 'whitelist', 'blacklist']:
+            cf = NamedTemporaryFile()
+            cf.write('[test]\n')
+            cf.write('%s = val\n' % r)
+            cf.seek(0)
+            
+            c = cronwatch.read_config(cf.name)
+            self.assertTrue(c['test'][r][0].match)
+
+   #def test_default_configfile(self):
+    #    '''Should read the main configuration file if it exists'''
+    #    cf = NamedTemporaryFile()
+    #    cf.write('[job]\n')
+    #    cf.write('exit_codes=10, 101\n')
+    #    cf.seek(0)
+
+    #    cronwatch.CONFIGFILE = cf.name
+
+    #    c = cronwatch.read_config()
+
+    #    #self.assertEquals([10, 101], c['job']exit_codes)
+
 #    def test_configfile_command_line(self):
 #        '''Should read an alternate config file'''
 #        cf = NamedTemporaryFile()

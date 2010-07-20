@@ -28,6 +28,9 @@ import subprocess
 import time
 import re
 import shlex
+from StringIO import StringIO
+from configobj import ConfigObj, flatten_errors, get_extra_values
+from validate import Validator, VdtTypeError, VdtValueError, is_list, is_int_list, force_list, ValidateError
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from getpass import getuser
@@ -111,14 +114,37 @@ def filter_text(rx, fh):
 
     return results
 
+class VdtValueMsgError(VdtValueError):
+    def __init__(self, msg):
+        ValidateError.__init__(self, msg)
+
+def is_regex(value):
+    '''Validator check for regular expressions'''
+    if not isinstance(value, basestring):
+        raise VdtTypeError(value)
+
+    try: 
+        r = re.compile(value)
+    except Exception, e:
+        raise VdtValueMsgError('invalid regular expression: %s: %s' % 
+                               (value, e))
+
+    return r
+
+def is_regex_list(value):
+    '''Validator check for list of regular expressions'''
+    return [is_regex(r) for r in is_list(value)]
+
+def force_regex_list(value):
+    '''Validator check to force a list of regular expressions'''
+    return is_regex_list(force_list(value))
+
+def force_int_list(value):
+    '''Validator check to force as list of integers'''
+    return is_int_list(force_list(value))
+
 def compile_re(regex):
     '''Compile a regex or list of regexes'''
-
-    if regex is None:
-        return []
-
-    if not isinstance(regex, list):
-        regex = [regex]
 
     l = []
     for r in regex:
@@ -181,24 +207,39 @@ def verify_config(config):
         
 def read_config(config_file = None):
     '''Read the configuration file'''
-    config = simpleconfig.Config()
+    
+    # Set up the validation spec
+    config_spec = StringIO()
+    config_spec.write('''
+        [__many__]
+        required = force_regex_list(default = None)
+        blacklist = force_regex_list(default = list(.*))
+        whitelist = force_regex_list(default = None)
+        exit_codes = int_list(default = list(0))
+        email_to = string(default = 'root')
+        email_from = string(default = None)
+        email_maxsize = integer(default = 4096)
+        email_success = boolean(default = False)
+        email_sendmail = string(default = /usr/lib/sendmail)
+        logfile = string(default = None)
+    ''')
+    config_spec.seek(0)
 
-    config.defaults.required = None
-    config.defaults.whitelist = None
-    config.defaults.blacklist = '.*'
-    config.defaults.exit_codes = 0
-    config.defaults.email_to = 'root'
-    config.defaults.email_from = None
-    config.defaults.email_maxsize = 4096
-    config.defaults.email_success = False
-    config.defaults.email_sendmail = '/usr/lib/sendmail'
-    config.defaults.logfile = None
+    # Read the configuration
+    try:
+        config = ConfigObj(config_file, configspec = config_spec)
+    except Exception, e:
+        raise Error('could not read %s: %s' % (config_file, e))
 
-    if not config_file is None:
-        config.read(config_file, required = True)
-    else:
-        config.read(CONFIGFILE)
+    # Validate the configuration
+    extra_checks = { 'force_regex_list': force_regex_list }
+    results = config.validate(Validator(extra_checks), preserve_errors = True)
+    assert results == True
 
+    # Check for extra settings
+    extra = get_extra_values(config)
+    if extra != []:
+        raise Error('unknown setting in configuration: %s' % extra[0][1])
     return config
 
 def call_sendmail(args, mail):
