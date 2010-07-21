@@ -167,49 +167,6 @@ class TestForceIntList(TestBase):
         '''Should create a list if not a list already'''
         self.assertEquals([1], cronwatch.force_int_list(1))
 
-#    
-#    def test_exit_codes(self):
-#        '''Should verify and normalize the exit_codes'''
-#        c = self.config()
-#        c.main.exit_codes = 1
-#        cronwatch.verify_config(c)
-#        self.assertEquals([1], c.main.exit_codes)
-#
-#        c.main.exit_codes = [1, 2]
-#        cronwatch.verify_config(c)
-#        self.assertEquals([1, 2], c.main.exit_codes)
-#
-#        c.main.exit_codes = [1, 'a']
-#        self.assertRaisesError(cronwatch.Error, 
-#                'configuration error: ' +
-#                'main.exit_codes must be a list of integer exit codes',
-#                cronwatch.verify_config, c)
-#
-#    def test_email_maxsize(self):
-#        '''Should verify it is a integer'''
-#        c = self.config()
-#        c.main.email_maxsize = 10
-#        cronwatch.verify_config(c)
-#        self.assertEquals(10, c.main.email_maxsize)
-#
-#        c.main.email_maxsize = 'a'
-#        self.assertRaisesError(cronwatch.Error,
-#                'configuration error: main.email_maxsize must be an integer',
-#                cronwatch.verify_config, c)
-#
-#    #def test_strings(self):
-#    #    '''Should verify that certain options are strings'''
-#    #    for s in ['email_to', 'email_from', 'email_sendmail', 'logfile']:
-#    #        c = self.config()
-#    #        c.set_setting('main', s, 1)
-#    #        self.assertRaisesError(cronwatch.Error,
-#    #                'configuration error: main.%s must be a string' % s,
-#    #                cronwatch.verify_config, c)
-#    #        c.set_setting('main', s, 'value')
-#    #        cronwatch.verify_config(c)
-#    #        self.assertEqual('value', c.get_setting(main, 's'))
-#
-
 class TestReadConfig(TestBase):
     '''Test the read_config() function'''
 
