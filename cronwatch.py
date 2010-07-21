@@ -22,15 +22,18 @@
 import sys
 import os
 import signal
-from optparse import OptionParser
-from tempfile import TemporaryFile
+
 import subprocess
 import time
 import re
 import shlex
+from optparse import OptionParser
+from tempfile import TemporaryFile
 from StringIO import StringIO
+
 from configobj import ConfigObj, flatten_errors, get_extra_values
 from validate import Validator, VdtTypeError, VdtValueError, is_list, is_int_list, force_list, ValidateError
+
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from getpass import getuser
@@ -215,10 +218,10 @@ def read_config(config_file = None):
         required = force_regex_list(default = None)
         blacklist = force_regex_list(default = list(.*))
         whitelist = force_regex_list(default = None)
-        exit_codes = int_list(default = list(0))
+        exit_codes = force_int_list(default = list(0))
         email_to = string(default = 'root')
         email_from = string(default = None)
-        email_maxsize = integer(default = 4096)
+        email_maxsize = integer(default = 4096, min = -1)
         email_success = boolean(default = False)
         email_sendmail = string(default = /usr/lib/sendmail)
         logfile = string(default = None)
@@ -232,9 +235,14 @@ def read_config(config_file = None):
         raise Error('could not read %s: %s' % (config_file, e))
 
     # Validate the configuration
-    extra_checks = { 'force_regex_list': force_regex_list }
+    extra_checks = { 'force_regex_list': force_regex_list,
+                     'force_int_list': force_int_list}
     results = config.validate(Validator(extra_checks), preserve_errors = True)
-    assert results == True
+
+    if results != True:
+        r = flatten_errors(config, results)[0]
+        raise Error('configuration error for %s.%s: %s' % 
+                    (r[0][0], r[1], r[2]))
 
     # Check for extra settings
     extra = get_extra_values(config)
