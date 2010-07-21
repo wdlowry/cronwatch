@@ -21,7 +21,7 @@
 
 import unittest
 import os
-from tempfile import NamedTemporaryFile, TemporaryFile, mkdtemp
+from tempfile import NamedTemporaryFile, TemporaryFile, mkdtemp, mkstemp
 from StringIO import StringIO
 from shutil import rmtree
 from test_base import TestBase
@@ -408,6 +408,47 @@ class TestSendMail(TestBase):
 
 class TestWatch(TestBase):
     '''Test the watch() function'''
+    
+    def setUp(self):
+        self.tempfile = mkstemp()
+        os.close(self.tempfile[0])
+        self.tempfile = self.tempfile[1]
+
+        self.cf = NamedTemporaryFile()
+
+        self.old_config = cronwatch.CONFIGFILE
+        cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
+
+        #self.args = None
+        #self.old_call_sendmail = cronwatch.call_sendmail
+        #cronwatch.call_sendmail = self.call_sendmail
+        
+
+    def tearDown(self):
+        os.remove(self.tempfile)
+
+        self.cf.close()
+
+        cronwatch.CONFIGFILE = self.old_config
+        #cronwatch.call_sendmail = self.old_call_sendmail
+
+    #def call_sendmail(self, *args):
+    #    self.args = args
+
+    #def call_watch(self, cmd, '
+    def conf(self, text):
+        '''Write the config file'''
+        self.cf.write(text)
+        self.cf.seek(0)
+
+    def out(self):
+        '''Read the output from the tempfile'''
+        return [l.rstrip() for l in open(self.tempfile).readlines()]
+    
+    def test_simple(self):
+        '''Should just run the process'''
+        cronwatch.watch(['./test_script.sh', 'quiet', self.tempfile, 'arg'])
+        self.assertEquals('quiet arg', self.out()[0])
 
 if __name__ == '__main__':
     unittest.main()

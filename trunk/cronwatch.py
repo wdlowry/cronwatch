@@ -259,6 +259,9 @@ def send_mail(sendmail, to_addr, subject, text, from_addr = None, html = None):
 ###############################################################################
 def watch(args, config = None, tag = None):
     '''Watch a job and capture output'''
+    
+    run(args)
+    return
 
 ###############################################################################
 # Main function
