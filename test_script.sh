@@ -58,6 +58,10 @@ case "$CMD" in
         cat > "$OUT"
         exit 0
         ;;
+    quiet)
+        echo "quiet $*" > "$OUT"
+        exit 0
+        ;;
     *)
         usage
         ;;
