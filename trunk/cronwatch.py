@@ -22,22 +22,21 @@
 import sys
 import os
 import signal
-
 import subprocess
 import time
 import re
 import shlex
+
 from optparse import OptionParser
 from tempfile import TemporaryFile
 from StringIO import StringIO
-
-from configobj import ConfigObj, flatten_errors, get_extra_values
-from validate import Validator, VdtTypeError, VdtValueError, is_list, is_int_list, force_list, ValidateError
-
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from getpass import getuser
 from socket import getfqdn, gethostname
+
+from configobj import ConfigObj, flatten_errors, get_extra_values
+from validate import Validator, VdtTypeError, VdtValueError, is_list, is_int_list, force_list, ValidateError
 
 ###############################################################################
 # Global variables
@@ -158,56 +157,6 @@ def compile_re(regex):
 
     return l
 
-
-def verify_config(config):
-    '''Make sure the configuration is valid'''
-    def err(section, setting, error):
-        raise Error('configuration error: %s.%s: %s' %
-                    (section, setting, error))
-
-    for sec in config:
-        for s in sec:
-            if s.get_name() not in ['required', 'whitelist', 'blacklist',
-                                    'exit_codes', 'email_to', 'email_from',
-                                    'email_maxsize', 'email_success',
-                                    'email_sendmail', 'logfile']:
-                err(sec.get_name(), s.get_name(), 'unknown option')
-        
-        # Verify the regular expressions lists
-        for s in ['required', 'whitelist', 'blacklist']:
-            try:
-                r = compile_re(sec.get_setting(s).get())
-            except Error, e:
-                raise e
-            except Exception, e:
-                raise Error('configuration error: ' +
-                    'could not compile %s.%s: %s' % (sec.get_name(), s, 
-                    str(e)))
-            
-            sec.get_setting(s).set(r)
-
-        # Handle the list of exit codes
-        if not isinstance(sec.exit_codes, list):
-            sec.exit_codes = [sec.exit_codes]
-
-        for i in sec.exit_codes:
-            if not isinstance(i, int):
-                raise Error(('configuration error: %s.exit_codes must be a ' + 
-                             'list of integer exit codes') % sec.get_name())
-
-        # Check the e-mail max size
-        if not isinstance(sec.email_maxsize, int):
-            raise Error(('configuration error: %s.email_maxsize must be an ' +
-                         'integer') % sec.get_name())
-
-        # Check strings
-        #for s in ['email_to', 'email_from', 'email_sendmail', 'logfile']:
-        #    if not isinstance(sec.get_setting(s).get(), str):
-        #        raise Error('configuration error: %s.%s must be a string' %
-        #                    (sec.get_name(), s))
-
-        
-        
 def read_config(config_file = None):
     '''Read the configuration file'''
     
