@@ -228,9 +228,19 @@ def read_config(config_file = None):
     ''')
     config_spec.seek(0)
 
+    if config_file is None:
+        file_error = False
+        config_file = CONFIGFILE
+    else:
+        file_error = True
+
+
     # Read the configuration
     try:
-        config = ConfigObj(config_file, configspec = config_spec)
+        config = ConfigObj(config_file, configspec = config_spec,
+                           file_error = file_error)
+    except IOError, e:
+        raise Error(str(e))
     except Exception, e:
         raise Error('could not read %s: %s' % (config_file, e))
 
