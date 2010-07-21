@@ -331,42 +331,27 @@ class TestReadConfig(TestBase):
         self.assertEquals('/l/sendmail -t"s 1"', c['test']['email_sendmail'])
         self.assertEquals('file%var%', c['test']['logfile'])
 
-   #def test_default_configfile(self):
-    #    '''Should read the main configuration file if it exists'''
-    #    cf = NamedTemporaryFile()
-    #    cf.write('[job]\n')
-    #    cf.write('exit_codes=10, 101\n')
-    #    cf.seek(0)
+    def test_default_configfile(self):
+        '''Should read the main configuration file if it exists'''
+        cf = self.config('[test]\nexit_codes = 1')
+        cronwatch.CONFIGFILE = cf.name
+        c = cronwatch.read_config()
+        self.assertEquals([1], c['test']['exit_codes'])
 
-    #    cronwatch.CONFIGFILE = cf.name
+    def test_configfile_command_line(self):
+        '''Should read an alternate config file'''
+        cf = self.config('[test]\nexit_codes = 2') #
+        cronwatch.CONFIGFILE = cf.name
+        cf2 = self.config('[test]\nexit_codes = 1') #
+        c = cronwatch.read_config(config_file = cf2.name)
 
-    #    c = cronwatch.read_config()
+        self.assertEquals([1], c['test']['exit_codes'])
 
-    #    #self.assertEquals([10, 101], c['job']exit_codes)
-
-#    def test_configfile_command_line(self):
-#        '''Should read an alternate config file'''
-#        cf = NamedTemporaryFile()
-#        cf.write('[fake]\n')
-#        cf.write('required = stuff\n')
-#        cf.seek(0)
-#
-#        cronwatch.CONFIGFILE = cf.name
-#
-#        cf2 = NamedTemporaryFile()
-#        cf2.write('[job]\n')
-#        cf2.write('exit_codes = 1\n')
-#        cf2.seek(0)
-#
-#        c = cronwatch.read_config(config_file = cf2.name)
-#
-#        self.assertFalse(c.has_section('fake'))
-#        self.assertEquals(1, c.job.exit_codes)
-#
-#    def test_require_configfile(self):
-#        '''Should raise an exception if the config file doesn't exist'''
-#        self.assertRaises(IOError, cronwatch.read_config, 
-#                          'this_is_not_a_file.forsure')
+    def test_require_configfile(self):
+        '''Should raise an exception if the config file doesn't exist'''
+        self.assertRaisesError(cronwatch.Error,
+                'Config file not found: "this_is_not_a_file.forsure".',
+                cronwatch.read_config, 'this_is_not_a_file.forsure')
 
 class TestCallSendmail(TestBase):
     '''Test the call_sendmail() function'''
