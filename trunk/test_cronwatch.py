@@ -220,20 +220,16 @@ class TestReadConfig(TestBase):
     def tearDown(self):
         cronwatch.CONFIGFILE = self.old_config
 
-    def test_parse_error(self):
-        '''Should raise an error when the config file is bad'''
+    def config(self, text):
+        '''Create a NamedTemporaryFile and return the object'''
         cf = NamedTemporaryFile()
-        cf.write('[test\n')
+        cf.write(text)
         cf.seek(0)
-        self.assertRaisesError(cronwatch.Error,
-                'could not read %s: Invalid line at line "1".' % cf.name, 
-                cronwatch.read_config, cf.name)
+        return cf
 
     def test_defaults(self):
         '''Should set defaults if no config is found'''
-        cf = NamedTemporaryFile()
-        cf.write('[test]\n')
-        cf.seek(0)
+        cf = self.config('[test]');
         c = cronwatch.read_config(cf.name)
         
         self.assertEquals(None, c['test']['required'])
@@ -248,32 +244,92 @@ class TestReadConfig(TestBase):
         self.assertEquals(None, c['test']['logfile'])
 
         self.assertEquals([], get_extra_values(c))
+    
+    def test_parse_error(self):
+        '''Should raise an error when the config file is bad'''
+        cf = self.config('[test')
+        self.assertRaisesError(cronwatch.Error,
+                'could not read %s: Invalid line at line "1".' % cf.name, 
+                cronwatch.read_config, cf.name)
 
     def test_extra_settings(self):
         '''Should fail if there are extra configuration settings'''
-        cf = NamedTemporaryFile()
-        cf.write('[test]\n')
-        cf.write('a=1\n')
-        cf.write('b=2\n')
-        cf.seek(0)
+        cf = self.config('''[test]
+                            a=1
+                            b=2''')
 
         self.assertRaisesError(cronwatch.Error,
                 'unknown setting in configuration: a',
                 cronwatch.read_config, cf.name)
 
-    def test_configuration_error(self):
-        '''TODO'''
+    def test_validation_error(self):
+        '''Should raise an Exception with a helpful error message'''
+        cf = self.config('[test]\nrequired = (')
+        self.assertRaisesError(cronwatch.Error,
+                'configuration error for test.required: ' + 
+                'invalid regular expression: (: unbalanced parenthesis',
+                cronwatch.read_config, cf.name)
 
     def test_regexes(self):
         '''Should verify and normalize the regular expresions'''
         for r in ['required', 'whitelist', 'blacklist']:
-            cf = NamedTemporaryFile()
-            cf.write('[test]\n')
-            cf.write('%s = val\n' % r)
-            cf.seek(0)
-            
+            cf = self.config('[test]\n%s = val'  % r)
             c = cronwatch.read_config(cf.name)
             self.assertTrue(c['test'][r][0].match)
+
+            cf = self.config('[test]\n%s = (')
+            self.assertRaises(cronwatch.Error, cronwatch.read_config, cf.name)
+
+    def test_exit_codes(self):
+        '''Should verify and normalize the exit codes'''
+        cf = self.config('[test]\nexit_codes = 1')
+        c = cronwatch.read_config(cf.name)
+        self.assertEquals([1], c['test']['exit_codes'])
+        
+        cf = self.config('[test]\nexit_codes = 1, 2')
+        c = cronwatch.read_config(cf.name)
+        self.assertEquals([1, 2], c['test']['exit_codes'])
+
+        cf = self.config('[test]\nexit_codes = a')
+        self.assertRaises(cronwatch.Error, cronwatch.read_config, cf.name)
+
+    def test_emails(self):
+        '''Should verify and normalize the email addresses'''
+        cf = self.config('[test]\nemail_to = default\nemail_from = me@dom.com')
+        c = cronwatch.read_config(cf.name)
+        self.assertEquals('default', c['test']['email_to'])
+        self.assertEquals('me@dom.com', c['test']['email_from'])
+        
+        cf = self.config('[test]\nemail_to = me,too')
+        self.assertRaises(cronwatch.Error, cronwatch.read_config, cf.name)
+
+    def test_email_maxsize(self):
+        '''Should verify and normalize the email maximum size'''
+        cf = self.config('[test]\nemail_maxsize = -1')
+        c = cronwatch.read_config(cf.name)
+        self.assertEquals(-1, c['test']['email_maxsize'])
+
+        cf = self.config('[test]\nemail_maxsize = -2')
+        self.assertRaises(cronwatch.Error, cronwatch.read_config, cf.name)
+
+    def test_email_success(self):
+        '''Should verify and normalize the email_sucess parameter'''
+        cf = self.config('[test1]\nemail_success = on\n' +
+                         '[test2]\nemail_success = off')
+        c = cronwatch.read_config(cf.name)
+        self.assertEquals(True, c['test1']['email_success'])
+        self.assertEquals(False, c['test2']['email_success'])
+
+        cf = self.config('[test]\nemail_success = 1, 2')
+        self.assertRaises(cronwatch.Error, cronwatch.read_config, cf.name)
+
+    def test_pathsil(self):
+        '''Should verify the path variables get set'''
+        cf = self.config('[test]\nemail_sendmail = /l/sendmail -t"s 1"\n' +
+                         'logfile = file%var%')
+        c = cronwatch.read_config(cf.name)
+        self.assertEquals('/l/sendmail -t"s 1"', c['test']['email_sendmail'])
+        self.assertEquals('file%var%', c['test']['logfile'])
 
    #def test_default_configfile(self):
     #    '''Should read the main configuration file if it exists'''
