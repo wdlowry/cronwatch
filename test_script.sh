@@ -20,7 +20,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 # Based on the first argument, print out some test output or do a test action
-case $1 in
+usage() {
+    echo "usage: $0 TESTCASE [OUT] [ARGS]"
+    exit 1
+}
+
+if [ -z "$1" ] ; then
+    usage
+fi
+
+CMD="$1"
+shift 
+
+if [ -n "$1" ] ; then
+    OUT="$1"
+    shift
+fi
+
+case "$CMD" in
     simple)
         echo stdout
         echo stderr 1>&2
@@ -38,11 +55,11 @@ case $1 in
         exit 0
         ;;
     sendmail)
-        cat > "$2"
+        cat > "$OUT"
         exit 0
         ;;
     *)
-        echo "usage: $0 TESTCASE"
+        usage
         ;;
 esac
 
