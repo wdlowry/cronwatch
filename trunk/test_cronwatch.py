@@ -190,8 +190,8 @@ class TestReadConfig(TestBase):
 
         for s in ['test', '_default_']:
             self.assertEquals(None, c[s]['required'])
-            self.assertTrue(c[s]['blacklist'][0].match)
             self.assertEquals(None, c[s]['whitelist'])
+            self.assertEquals(None, c[s]['blacklist'])
             self.assertEquals([0], c[s]['exit_codes'])
             self.assertEquals(None, c[s]['email_to'])
             self.assertEquals(None, c[s]['email_from'])
@@ -233,7 +233,7 @@ class TestReadConfig(TestBase):
             cf = self.config('[test]\n%s = val'  % r)
             c = cronwatch.read_config(cf.name)
             self.assertTrue(c['test'][r][0].match)
-
+            
             cf = self.config('[test]\n%s = (')
             self.assertRaises(cronwatch.Error, cronwatch.read_config, cf.name)
 
@@ -423,7 +423,6 @@ class TestWatch(TestBase):
         self.send = False
         self.old_send_mail = cronwatch.send_mail
         cronwatch.send_mail = self.send_mail
-        
 
     def tearDown(self):
         os.remove(self.tempfile)
@@ -448,20 +447,16 @@ class TestWatch(TestBase):
         self.cf.write('[job]\n')
         self.cf.write(text)
         self.cf.seek(0)
-
-    def out(self):
-        '''Read the output from the tempfile'''
-        return [l.rstrip() for l in open(self.tempfile).readlines()]
     
     def watch(self, cmd, *args):
         self.cmd_line = ['./test_script.sh', cmd, self.tempfile] + list(args)
         cronwatch.watch(self.cmd_line, config = self.cf.name, tag = 'job')
         self.cmd_line = ' '.join(self.cmd_line)
-        return self.out()
     
     def test_simple(self):
-        '''Should just run the process'''
-        o = self.watch('quiet', 'arg')
+        '''Should run the executable with arguments and just quit'''
+        self.watch('quiet', 'arg')
+        o = [l.rstrip() for l in open(self.tempfile).readlines()]
         self.assertEquals('quiet arg', o[0])
         self.assertFalse(self.send)
 
@@ -502,7 +497,7 @@ class TestWatch(TestBase):
     def test_email_body(self):
         '''Should say if the job completed successfully'''
         self.watch('exit', '1')
-        self.assertEquals('The following command line executed unsuccessfully:',
+        self.assertEquals('The following command line executed with an error:',
                           self.send_text[0])
         self.assertEquals('    ' + self.cmd_line, self.send_text[1])
         self.assertEquals('', self.send_text[2])
@@ -524,15 +519,50 @@ class TestWatch(TestBase):
         self.assertEquals('    * Exit code (3) was not a valid exit code', 
                           self.send_text[5])
 
+    def test_required(self):
+        '''Should search for required output'''
+        self.conf('required = req, line')
+        self.watch('out', 'line1', 'req', 'line3')
+        self.assertFalse(self.send)
 
-#required
-#blacklist
-#whitelist
-#exit_codes
+        self.conf('required = req, more')
+        self.watch('out', 'line1', 'line2', 'line3')
+        self.assertEquals('    * Did not find required output (req)', 
+                          self.send_text[5])
+        self.assertEquals('    * Did not find required output (more)', 
+                          self.send_text[6])
+    
+    def test_whitelist(self):
+        '''Should cause an error if there is non-whitelist output'''
+        self.conf('whitelist = white, bright')
+        self.watch('out', 'whitelight', 'brightlight', 'whitebright')
+        self.assertFalse(self.send)
+
+        self.conf('whitelist = white, bright')
+        self.watch('out', 'whitelight', 'black', 'whitebright')
+        self.assertEquals('    * Found output not matched by whitelist', 
+                          self.send_text[5])
+
+    def test_blacklist(self):
+        '''Should cause an error if there is blacklist output'''
+        self.conf('blacklist = black, dark')
+        self.watch('out', 'line1', 'line2', 'line3')
+        self.assertFalse(self.send)
+
+        self.conf('blacklist = black, dark')
+        self.watch('out', 'black', 'dark', 'line3')
+        self.assertEquals('    * Found blacklist output (black)', 
+                          self.send_text[5])
+        self.assertEquals('    * Found blacklist output (dark)', 
+                          self.send_text[6])
+
+#required output
+#blacklist output
+#whitelist output
 #email_maxsize
 #email_success
-#email_sendmail
 #logfile
+# TAG HANDLING
                                                                                 #
 if __name__ == '__main__':
     unittest.main()

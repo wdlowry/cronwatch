@@ -167,7 +167,7 @@ def read_config(config_file = None):
     config_spec = StringIO()
     defaults = '''
         required = force_regex_list(default = None)
-        blacklist = force_regex_list(default = list(.*))
+        blacklist = force_regex_list(default = None)
         whitelist = force_regex_list(default = None)
         exit_codes = force_int_list(default = list(0))
         email_to = string(default = None)
@@ -270,33 +270,73 @@ def watch(args, config = None, tag = None):
     # Read the configuration
     config = read_config(config)
 
+    # Run the actual program
+    (oh, exit) = run(args)
+    
     # Determine the conf section to use
     if not config.has_key(tag):
         section = '_default_'
     else:
         section = tag
 
-    # Run the actual program
-    (oh, exit) = run(args)
+    errors = ''
 
+    # Check for correct error codes
+    if exit not in config[section]['exit_codes']:
+        errors += '    * Exit code (%i) was not a valid exit code\n' % exit
+
+    # Set up the regular expressions
+    regexes = {}
+    for regex in ['required', 'whitelist', 'blacklist']:
+        regexes[regex] = []
+        if config[section][regex]:
+            for r in config[section][regex]:
+                regexes[regex].append([r, False])
+
+    # Check output for regexes
+    for l in oh:
+        # Check for required lines
+        for r in regexes['required']:
+            if r[0].search(l):
+                r[1] = True
+
+        for r in regexes['blacklist']:
+            if r[0].search(l):
+                r[1] = True
+
+        found = False
+        for r in regexes['whitelist']:
+            if r[0].search(l):
+                found = True
+
+
+    # Check to make sure all the required regex got hit
+    for r in regexes['required']:
+        if not r[1]:
+            errors += ('    * Did not find required output (%s)\n' % 
+                       r[0].pattern)
+
+    for r in regexes['blacklist']:
+        if r[1]:
+            errors += '    * Found blacklist output (%s)\n' % r[0].pattern
+
+    # Bail out if we don't have any errors
+    if errors == '':
+        return
+
+    # Construct the e-mail
     subject = 'cronwatch <%s> %s' % (get_user_hostname(), ' '.join(args))
     to_addr = config[section]['email_to']
     from_addr = config[section]['email_from']
     sendmail = config[section]['email_sendmail']
-    
-    errors = ''
-    if exit not in config[section]['exit_codes']:
-        errors += '    * Exit code (%i) was not a valid exit code\n' % exit
 
-    if errors:
-        text = 'The following command line executed unsuccessfully:\n'
-        text += '    %s\n' % ' '.join(args)
-        text += '\n\n'
-        text += 'Errors:\n'
-        text += errors
-        send_mail(sendmail, subject, text, to_addr, from_addr)
-
-    return
+    header = 'The following command line executed with an error:\n'
+    header += '    %s\n' % ' '.join(args)
+    header += '\n\n'
+    header += 'Errors:\n'
+    header += errors
+    text = header
+    send_mail(sendmail, subject, text, to_addr, from_addr)
 
 ###############################################################################
 # Main function
