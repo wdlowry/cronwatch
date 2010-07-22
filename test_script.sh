@@ -62,6 +62,9 @@ case "$CMD" in
         echo "quiet $*" > "$OUT"
         exit 0
         ;;
+    exit)
+        exit $1
+        ;;
     *)
         usage
         ;;

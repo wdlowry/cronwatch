@@ -57,6 +57,9 @@ class Error(Exception):
 ###############################################################################
 # Helper functions
 ###############################################################################
+def get_user_hostname():
+    return '%s@%s' % (getuser(), getfqdn(gethostname()))
+
 def run(args, timeout = -1):
     '''Run an executable
     
@@ -162,19 +165,19 @@ def read_config(config_file = None):
     
     # Set up the validation spec
     config_spec = StringIO()
-    config_spec.write('''
-        [__many__]
+    defaults = '''
         required = force_regex_list(default = None)
         blacklist = force_regex_list(default = list(.*))
         whitelist = force_regex_list(default = None)
         exit_codes = force_int_list(default = list(0))
-        email_to = string(default = 'root')
+        email_to = string(default = None)
         email_from = string(default = None)
         email_maxsize = integer(default = 4096, min = -1)
         email_success = boolean(default = False)
         email_sendmail = string(default = /usr/lib/sendmail)
         logfile = string(default = None)
-    ''')
+    '''
+    config_spec.write('[__many__]\n%s\n[_default_]\n%s' % (defaults, defaults))
     config_spec.seek(0)
 
     if config_file is None:
@@ -232,11 +235,15 @@ def call_sendmail(args, mail):
     if r != 0:
         raise Error('sendmail returned exit code %i: %s' % (r, o))
 
-def send_mail(sendmail, to_addr, subject, text, from_addr = None, html = None):
+def send_mail(sendmail, subject, text, to_addr = None, from_addr = None,
+              html = None):
     '''Format and send an e-mail'''
 
     if from_addr is None:
-        from_addr = '%s@%s' % (getuser(), getfqdn(gethostname()))
+        from_addr = get_user_hostname()
+
+    if to_addr is None:
+        to_addr = getuser()
 
     if html is None:
         msg = MIMEText(text)
@@ -251,7 +258,7 @@ def send_mail(sendmail, to_addr, subject, text, from_addr = None, html = None):
         msg.attach(MIMEText(text, 'plain'))
         msg.attach(MIMEText(html, 'html'))
 
-    call_sendmail(shlex.split(sendmail), msg.as_string())
+    call_sendmail(shlex.split(sendmail) + [to_addr], msg.as_string())
 
 
 ###############################################################################
@@ -260,7 +267,26 @@ def send_mail(sendmail, to_addr, subject, text, from_addr = None, html = None):
 def watch(args, config = None, tag = None):
     '''Watch a job and capture output'''
     
-    run(args)
+    # Read the configuration
+    config = read_config(config)
+
+    # Determine the conf section to use
+    if not config.has_key(tag):
+        section = '_default_'
+    else:
+        section = tag
+
+    # Run the actual program
+    (oh, exit) = run(args)
+
+    subject = 'cronwatch <%s> %s' % (get_user_hostname(), ' '.join(args))
+    to_addr = config[section]['email_to']
+    from_addr = config[section]['email_from']
+    sendmail = config[section]['email_sendmail']
+    
+    if exit not in config[section]['exit_codes']:
+        send_mail(sendmail, subject, 'error', to_addr, from_addr)
+
     return
 
 ###############################################################################
