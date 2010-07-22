@@ -440,7 +440,7 @@ class TestWatch(TestBase):
         self.send_sendmail = sendmail
         self.send_to = to_addr
         self.send_subject = subject
-        self.send_text = text
+        self.send_text = text.split('\n')
         self.send_from = from_addr
 
     def conf(self, text):
@@ -498,6 +498,16 @@ class TestWatch(TestBase):
         self.conf('email_sendmail = sm')
         self.watch('exit', '1')
         self.assertEquals('sm', self.send_sendmail)
+
+    def test_email_body(self):
+        '''Should say if the job completed successfully'''
+        self.watch('exit', '1')
+        self.assertEquals('The following command line executed unsuccessfully:',
+                          self.send_text[0])
+        self.assertEquals('    ' + self.cmd_line, self.send_text[1])
+        self.assertEquals('', self.send_text[2])
+        self.assertEquals('', self.send_text[3])
+        self.assertEquals('Errors:', self.send_text[4])
     
     def test_exit_codes(self):
         '''Should send a mail if the exit code doesn't match'''
@@ -511,15 +521,14 @@ class TestWatch(TestBase):
 
         self.conf('exit_codes = 1, 2')
         self.watch('exit', '3')
-        self.assertTrue(self.send)
+        self.assertEquals('    * Exit code (3) was not a valid exit code', 
+                          self.send_text[5])
 
 
 #required
 #blacklist
 #whitelist
 #exit_codes
-#email_to
-#email_from
 #email_maxsize
 #email_success
 #email_sendmail

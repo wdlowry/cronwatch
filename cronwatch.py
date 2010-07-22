@@ -284,8 +284,17 @@ def watch(args, config = None, tag = None):
     from_addr = config[section]['email_from']
     sendmail = config[section]['email_sendmail']
     
+    errors = ''
     if exit not in config[section]['exit_codes']:
-        send_mail(sendmail, subject, 'error', to_addr, from_addr)
+        errors += '    * Exit code (%i) was not a valid exit code\n' % exit
+
+    if errors:
+        text = 'The following command line executed unsuccessfully:\n'
+        text += '    %s\n' % ' '.join(args)
+        text += '\n\n'
+        text += 'Errors:\n'
+        text += errors
+        send_mail(sendmail, subject, text, to_addr, from_addr)
 
     return
 
