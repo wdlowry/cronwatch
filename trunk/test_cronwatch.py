@@ -24,11 +24,10 @@ import os
 from tempfile import NamedTemporaryFile, TemporaryFile, mkdtemp, mkstemp
 from StringIO import StringIO
 from shutil import rmtree
-from test_base import TestBase
-from getpass import getuser
-from socket import getfqdn, gethostname
+from test_base import *
 from validate import VdtTypeError, VdtValueError
 from configobj import get_extra_values
+from getpass import getuser
 
 
 import cronwatch
@@ -188,20 +187,21 @@ class TestReadConfig(TestBase):
         '''Should set defaults if no config is found'''
         cf = self.config('[test]');
         c = cronwatch.read_config(cf.name)
-        
-        self.assertEquals(None, c['test']['required'])
-        self.assertTrue(c['test']['blacklist'][0].match)
-        self.assertEquals(None, c['test']['whitelist'])
-        self.assertEquals([0], c['test']['exit_codes'])
-        self.assertEquals('root', c['test']['email_to'])
-        self.assertEquals(None, c['test']['email_from'])
-        self.assertEquals(4096, c['test']['email_maxsize'])
-        self.assertEquals(False, c['test']['email_success'])
-        self.assertEquals('/usr/lib/sendmail', c['test']['email_sendmail'])
-        self.assertEquals(None, c['test']['logfile'])
+
+        for s in ['test', '_default_']:
+            self.assertEquals(None, c[s]['required'])
+            self.assertTrue(c[s]['blacklist'][0].match)
+            self.assertEquals(None, c[s]['whitelist'])
+            self.assertEquals([0], c[s]['exit_codes'])
+            self.assertEquals(None, c[s]['email_to'])
+            self.assertEquals(None, c[s]['email_from'])
+            self.assertEquals(4096, c[s]['email_maxsize'])
+            self.assertEquals(False, c[s]['email_success'])
+            self.assertEquals('/usr/lib/sendmail', c[s]['email_sendmail'])
+            self.assertEquals(None, c[s]['logfile'])
 
         self.assertEquals([], get_extra_values(c))
-    
+
     def test_parse_error(self):
         '''Should raise an error when the config file is bad'''
         cf = self.config('[test')
@@ -280,7 +280,7 @@ class TestReadConfig(TestBase):
         cf = self.config('[test]\nemail_success = 1, 2')
         self.assertRaises(cronwatch.Error, cronwatch.read_config, cf.name)
 
-    def test_pathsil(self):
+    def test_paths(self):
         '''Should verify the path variables get set'''
         cf = self.config('[test]\nemail_sendmail = /l/sendmail -t"s 1"\n' +
                          'logfile = file%var%')
@@ -343,11 +343,6 @@ class TestCallSendmail(TestBase):
                 'outputtmp')
 
 class TestSendMail(TestBase):
-    '''Test the send_mail() function
-
-       send_mail(sendmail, to_addr, subject, text, from_addr = None,
-                 html = None)
-    '''
     def call_sendmail(self, *args):
         self.args = args
 
@@ -363,15 +358,16 @@ class TestSendMail(TestBase):
         '''Should parse the sendmail command line and pass it to
            call_sendmail'''
         cronwatch.send_mail('''/usr/bin/sendmail 'this is a "test"' "*"''',
-                            'to', 'subject', 'text')
+                            'subject', 'text', 'to')
 
         self.assertEquals(self.args[0], ['/usr/bin/sendmail', 
-                                         'this is a "test"', '*'])
+                                         'this is a "test"', '*', 'to'])
 
     def test_formatted_mail(self):
         '''Should prepare an e-mail message'''
-        cronwatch.send_mail('sendmail', 'to@domain.com', 'my subject',
-                            'e-mail body\nmore text', 'from@domain.com')
+        cronwatch.send_mail('sendmail', 'my subject',
+                            'e-mail body\nmore text', 'to@domain.com',
+                            'from@domain.com')
         
         lines = self.args[1].split('\n')
         self.assertEquals('Content-Type: text/plain; charset="us-ascii"',
@@ -384,15 +380,20 @@ class TestSendMail(TestBase):
         self.assertEquals('more text', lines[8])
 
     def test_auto_from(self):
-        '''Should auto generate the from user'''
-        cronwatch.send_mail('sendmail', 'to', 'subject', 'text')
-        from_addr = '%s@%s' % (getuser(), getfqdn(gethostname()))
+        '''Should auto generate the from address'''
+        cronwatch.send_mail('sendmail', 'subject', 'text', 'to')
         lines = self.args[1].split('\n')
-        self.assertEquals('From: %s' % from_addr, lines[4])
+        self.assertEquals('From: %s' % get_user_hostname(), lines[4])
+    
+    def test_auto_to(self):
+        '''Should auto generate the to address'''
+        cronwatch.send_mail('sendmail', 'subject', 'text')
+        lines = self.args[1].split('\n')
+        self.assertEquals('To: %s' % getuser(), lines[3])
 
     def test_html(self):
         '''Should create a html part'''
-        cronwatch.send_mail('sendmail', 'to', 'subject', 'text', html = 'html')
+        cronwatch.send_mail('sendmail', 'subject', 'text', html = 'html')
         
         lines = self.args[1].split('\n')
         self.assertEquals('Content-Type: multipart/alternative',
@@ -419,9 +420,9 @@ class TestWatch(TestBase):
         self.old_config = cronwatch.CONFIGFILE
         cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
 
-        #self.args = None
-        #self.old_call_sendmail = cronwatch.call_sendmail
-        #cronwatch.call_sendmail = self.call_sendmail
+        self.send = False
+        self.old_send_mail = cronwatch.send_mail
+        cronwatch.send_mail = self.send_mail
         
 
     def tearDown(self):
@@ -430,14 +431,21 @@ class TestWatch(TestBase):
         self.cf.close()
 
         cronwatch.CONFIGFILE = self.old_config
-        #cronwatch.call_sendmail = self.old_call_sendmail
+        cronwatch.send_mail = self.old_send_mail
 
-    #def call_sendmail(self, *args):
-    #    self.args = args
+    def send_mail(self, sendmail, subject, text, to_addr = None, 
+                  from_addr = None, html = None):
 
-    #def call_watch(self, cmd, '
+        self.send = True
+        self.send_sendmail = sendmail
+        self.send_to = to_addr
+        self.send_subject = subject
+        self.send_text = text
+        self.send_from = from_addr
+
     def conf(self, text):
         '''Write the config file'''
+        self.cf.write('[job]\n')
         self.cf.write(text)
         self.cf.seek(0)
 
@@ -445,10 +453,77 @@ class TestWatch(TestBase):
         '''Read the output from the tempfile'''
         return [l.rstrip() for l in open(self.tempfile).readlines()]
     
+    def watch(self, cmd, *args):
+        self.cmd_line = ['./test_script.sh', cmd, self.tempfile] + list(args)
+        cronwatch.watch(self.cmd_line, config = self.cf.name, tag = 'job')
+        self.cmd_line = ' '.join(self.cmd_line)
+        return self.out()
+    
     def test_simple(self):
         '''Should just run the process'''
-        cronwatch.watch(['./test_script.sh', 'quiet', self.tempfile, 'arg'])
-        self.assertEquals('quiet arg', self.out()[0])
+        o = self.watch('quiet', 'arg')
+        self.assertEquals('quiet arg', o[0])
+        self.assertFalse(self.send)
 
+    def test_email_subject(self):
+        '''Should set the e-mail subject'''
+        self.watch('exit', '1')
+        self.assertEquals('cronwatch <%s> %s' % 
+                          (get_user_hostname(), self.cmd_line),
+                          self.send_subject)
+    
+    def test_email_to(self):
+        '''Should set the e-mail to address'''
+        self.watch('exit', '1')
+        self.assertEquals(None, self.send_to)
+
+        self.conf('email_to = testuser')
+        self.watch('exit', '1')
+        self.assertEquals('testuser', self.send_to)
+
+    def test_email_from(self):
+        '''Should set the e-mail from address'''
+        self.watch('exit', '1')
+        self.assertEquals(None, self.send_from)
+
+        self.conf('email_from = testuser')
+        self.watch('exit', '1')
+        self.assertEquals('testuser', self.send_from)
+
+    def test_email_sendmail(self):
+        '''Should set the sendmail path'''
+        self.watch('exit', '1')
+        self.assertEquals('/usr/lib/sendmail', self.send_sendmail)
+
+        self.conf('email_sendmail = sm')
+        self.watch('exit', '1')
+        self.assertEquals('sm', self.send_sendmail)
+    
+    def test_exit_codes(self):
+        '''Should send a mail if the exit code doesn't match'''
+        self.conf('exit_codes = 1, 2')
+        self.watch('exit', '1')
+        self.assertFalse(self.send)
+        
+        self.conf('exit_codes = 1, 2')
+        self.watch('exit', '2')
+        self.assertFalse(self.send)
+
+        self.conf('exit_codes = 1, 2')
+        self.watch('exit', '3')
+        self.assertTrue(self.send)
+
+
+#required
+#blacklist
+#whitelist
+#exit_codes
+#email_to
+#email_from
+#email_maxsize
+#email_success
+#email_sendmail
+#logfile
+                                                                                #
 if __name__ == '__main__':
     unittest.main()
