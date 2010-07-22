@@ -65,6 +65,12 @@ case "$CMD" in
     exit)
         exit $1
         ;;
+    out)
+        while [ -n "$1" ] ; do
+            echo $1
+            shift
+        done
+        ;;
     *)
         usage
         ;;
