@@ -73,8 +73,8 @@ If both whitelist and blacklist are specified, then the output is first tested a
 
 == email_to ==
 || *Name:* || `email_to` ||
-|| *Default Value:* || `root` ||
-|| *Description:* || An e-mail address to which to send output. This address can be a local account, for example, `root`, the default. ||
+|| *Default Value:* || None ||
+|| *Description:* || An e-mail address to which to send output. This address can be a local account, for example, `root`, the default. If this setting is not specified (the default), then it will be generate in the format: <username> ||
 
 == email_from ==
 || *Name:* || `email_from` ||
