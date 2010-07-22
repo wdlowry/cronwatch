@@ -22,8 +22,22 @@
 import unittest
 import sys
 from StringIO import StringIO
+from getpass import getuser
+from socket import getfqdn, gethostname
 
-__all__ = ['TestBase']
+
+__all__ = ['TestBase', 'get_user_hostname']
+
+###############################################################################
+# Test Helper Functions
+###############################################################################
+def get_user_hostname(fqdn = True):
+    '''Return the user@hostname'''
+    user = getuser()
+    host = gethostname()
+    if fqdn: host = getfqdn(host)
+
+    return '%s@%s' % (user, host)
 
 ###############################################################################
 # Test Helper Classes
