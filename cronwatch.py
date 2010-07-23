@@ -91,32 +91,48 @@ def run(args, timeout = -1):
 
     return (output_file, return_code)
 
-def filter_text(rx, fh):
+def filter_text(rx, fh, not_found = []):
     '''Search file object fh for the rx(es) in rx
        
        rx format: {'name of setting': [list of regex objects]}
        return format: {'name of setting': {regex pattern: [list of occurances]}}
     '''
     assert isinstance(rx, dict)
+    assert isinstance(not_found, (list, tuple))
 
     # Create a working dict for returning
     results = {}
     for (name, regexes) in rx.iteritems():
         assert isinstance(name, str)
         assert isinstance(regexes, (list, tuple))
-        patterns = {}
-        for regex in regexes:
-            assert regex.match
-            patterns[regex.pattern] = []
+        if name in not_found:
+            patterns = []
+            for regex in regexes:
+                assert regex.match
+        else:
+            patterns = {}
+            for regex in regexes:
+                assert regex.match
+                patterns[regex.pattern] = []
         results[name] = patterns
 
     # Cycle through the lines and try each regex against it
     i = 1 
     for line in fh:
         for (name, regexes) in rx.iteritems():
-            for regex in regexes:
-                if regex.search(line):
-                    results[name][regex.pattern].append(i)
+            if not regexes: continue
+            if name in not_found:
+                match = False
+                for regex in regexes:
+                    if regex.search(line):
+                        match = True
+                if not match:
+                    results[name].append(i)
+            else:
+                for regex in regexes:
+                    if regex.search(line):
+                        results[name][regex.pattern].append(i)
+
         i += 1
 
     return results
@@ -289,13 +305,19 @@ def watch(args, config = None, tag = None):
 
     # Set up the regular expressions
     regexes = {}
-    for r in ['required', 'whitelist', 'blacklist']:
+    for r in ['required', 'blacklist']:
         if not config[section][r] is None:
             regexes[r] = config[section][r]
         else:
             regexes[r] = []
 
     results = filter_text(regexes, oh)
+
+    # Check for whitelist stuff
+    #if config[section]['whitelist']:
+    #    whitelist = False
+    #    for l 
+
 
     # Check to make sure all the required regexes got hit
     for r in sorted(results['required']):
