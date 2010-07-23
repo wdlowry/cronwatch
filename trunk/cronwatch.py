@@ -305,25 +305,23 @@ def watch(args, config = None, tag = None):
 
     # Set up the regular expressions
     regexes = {}
-    for r in ['required', 'blacklist']:
+    for r in ['required', 'blacklist', 'whitelist']:
         if not config[section][r] is None:
             regexes[r] = config[section][r]
         else:
             regexes[r] = []
 
-    results = filter_text(regexes, oh)
-
-    # Check for whitelist stuff
-    #if config[section]['whitelist']:
-    #    whitelist = False
-    #    for l 
-
+    results = filter_text(regexes, oh, not_found = ['whitelist'])
 
     # Check to make sure all the required regexes got hit
     for r in sorted(results['required']):
         lines = results['required'][r]
         if not lines:
             errors += ('    * Did not find required output (%s)\n' % r)
+
+    # Check to see if anything didn't match the regex whitelist
+    if results['whitelist']:
+        errors += ('    * Found output not matched by whitelist')
 
     # Check to see if any of the blacklist regexes got hit
     for r in sorted(results['blacklist']):

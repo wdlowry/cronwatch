@@ -136,12 +136,13 @@ class TestSearchFile(TestBase):
         r2 = re.compile('two')
         r3 = re.compile('[1-3]')
         r4 = re.compile('not')
-        rx = {'1': [r1], '2': [r2, r3], '3': [r1, r4], '4': [r4], '5': []}
+        r5 = re.compile('.*')
+        rx = {'1': [r1], '2': [r2, r3], '3': [r5], '4': [r4], '5': []}
         r = cronwatch.filter_text(rx, self.tmp,
                                   not_found = ['1', '2', '3', '4', '5'])
         self.assertEqual({'1': [2, 3, 4, 5, 6],
                           '2': [1, 3],
-                          '3': [2, 3, 4, 5, 6],
+                          '3': [],
                           '4': [1, 2, 3, 4, 5, 6],
                           '5': []}, r)
 
@@ -553,16 +554,16 @@ class TestWatch(TestBase):
         self.assertEquals('    * Did not find required output (req)', 
                           self.send_text[6])
     
-    #def test_whitelist(self):
-    #    '''Should cause an error if there is non-whitelist output'''
-    #    self.conf('whitelist = white, bright')
-    #    self.watch('whiteout', 'whitelight', 'brightlight', 'whitebright')
-    #    self.assertFalse(self.send)
+    def test_whitelist(self):
+        '''Should cause an error if there is non-whitelist output'''
+        self.conf('whitelist = white, bright')
+        self.watch('out', 'whitelight', 'brightlight', 'whitebright')
+        self.assertFalse(self.send)
 
-    #    self.conf('whitelist = white, bright')
-    #    self.watch('out', 'whitelight', 'black', 'whitebright')
-    #    self.assertEquals('    * Found output not matched by whitelist', 
-    #                      self.send_text[5])
+        self.conf('whitelist = white, bright')
+        self.watch('out', 'whitelight', 'black', 'whitebright')
+        self.assertEquals('    * Found output not matched by whitelist', 
+                          self.send_text[5])
 
     def test_blacklist(self):
         '''Should cause an error if there is blacklist output'''
