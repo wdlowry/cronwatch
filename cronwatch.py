@@ -92,29 +92,28 @@ def run(args, timeout = -1):
     return (output_file, return_code)
 
 def filter_text(rx, fh):
-    '''Search file object fh for the rx(es) in rx'''
+    '''Search file object fh for the rx(es) in rx
+       
+       rx format: {'name of setting': [list of regex objects]}
+       return format: {'name of setting': {regex pattern: [list of occurances]}}
+    '''
+    assert isinstance(rx, dict)
 
-    # Convert to a list if it isn't one
-    if not isinstance(rx, list):
-        rx = [rx]
-
-    # Create a working dict with the hashes
-    rxes = {}
+    # Create a working dict for returning
     results = {}
-    for r in rx:
-        try:
-            rxes[r] = re.compile(r)
-        except Exception, e:
-            raise Error('invalid regex "%s": %s' % (r, str(e)))
-
-        results[r] = []
+    for (name, regexes) in rx.iteritems():
+        patterns = {}
+        for regex in regexes:
+            patterns[regex.pattern] = []
+        results[name] = patterns
 
     # Cycle through the lines and try each regex against it
-    i = 0 
+    i = 1 
     for line in fh:
-        for r in rxes:
-            if rxes[r].search(line) != None:
-                results[r].append(i)
+        for (name, regexes) in rx.iteritems():
+            for regex in regexes:
+                if regex.search(line):
+                    results[name][regex.pattern].append(i)
         i += 1
 
     return results
