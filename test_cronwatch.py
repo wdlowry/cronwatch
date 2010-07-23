@@ -527,35 +527,35 @@ class TestWatch(TestBase):
 
         self.conf('required = req, more')
         self.watch('out', 'line1', 'line2', 'line3')
-        self.assertEquals('    * Did not find required output (req)', 
-                          self.send_text[5])
         self.assertEquals('    * Did not find required output (more)', 
+                          self.send_text[5])
+        self.assertEquals('    * Did not find required output (req)', 
                           self.send_text[6])
-#    
-#    def test_whitelist(self):
-#        '''Should cause an error if there is non-whitelist output'''
-#        self.conf('whitelist = white, bright')
-#        self.watch('out', 'whitelight', 'brightlight', 'whitebright')
-#        self.assertFalse(self.send)
-#
-#        self.conf('whitelist = white, bright')
-#        self.watch('out', 'whitelight', 'black', 'whitebright')
-#        self.assertEquals('    * Found output not matched by whitelist', 
-#                          self.send_text[5])
-#
-#    def test_blacklist(self):
-#        '''Should cause an error if there is blacklist output'''
-#        self.conf('blacklist = black, dark')
-#        self.watch('out', 'line1', 'line2', 'line3')
-#        self.assertFalse(self.send)
-#
-#        self.conf('blacklist = black, dark')
-#        self.watch('out', 'black', 'dark', 'line3')
-#        self.assertEquals('    * Found blacklist output (black)', 
-#                          self.send_text[5])
-#        self.assertEquals('    * Found blacklist output (dark)', 
-#                          self.send_text[6])
-#
+    
+    def test_whitelist(self):
+        '''Should cause an error if there is non-whitelist output'''
+        self.conf('whitelist = white, bright')
+        self.watch('out', 'whitelight', 'brightlight', 'whitebright')
+        self.assertFalse(self.send)
+
+        self.conf('whitelist = white, bright')
+        self.watch('out', 'whitelight', 'black', 'whitebright')
+        self.assertEquals('    * Found output not matched by whitelist', 
+                          self.send_text[5])
+
+    def test_blacklist(self):
+        '''Should cause an error if there is blacklist output'''
+        self.conf('blacklist = black, dark')
+        self.watch('out', 'line1', 'line2', 'line3')
+        self.assertFalse(self.send)
+
+        self.conf('blacklist = black, dark')
+        self.watch('out', 'black', 'dark', 'line3')
+        self.assertEquals('    * Found blacklist output (black)', 
+                          self.send_text[5])
+        self.assertEquals('    * Found blacklist output (dark)', 
+                          self.send_text[6])
+
 #required output
 #blacklist output
 #whitelist output

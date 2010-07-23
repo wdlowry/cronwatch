@@ -297,10 +297,17 @@ def watch(args, config = None, tag = None):
 
     results = filter_text(regexes, oh)
 
-    # Check to make sure all the required regex got hit
-    for (r, lines)  in results['required'].iteritems():
-        if len(lines) == 0:
+    # Check to make sure all the required regexes got hit
+    for r in sorted(results['required']):
+        lines = results['required'][r]
+        if not lines:
             errors += ('    * Did not find required output (%s)\n' % r)
+
+    # Check to see if any of the blacklist regexes got hit
+    for r in sorted(results['blacklist']):
+        lines = results['blacklist'][r]
+        if lines:
+            errors += ('    * Found blacklist output (%s)\n' % r)
 
     # Bail out if we don't have any errors
     if errors == '':
