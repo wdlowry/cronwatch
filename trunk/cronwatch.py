@@ -102,8 +102,11 @@ def filter_text(rx, fh):
     # Create a working dict for returning
     results = {}
     for (name, regexes) in rx.iteritems():
+        assert isinstance(name, str)
+        assert isinstance(regexes, list)
         patterns = {}
         for regex in regexes:
+            assert regex.match
             patterns[regex.pattern] = []
         results[name] = patterns
 
