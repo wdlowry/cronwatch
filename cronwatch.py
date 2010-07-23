@@ -103,7 +103,7 @@ def filter_text(rx, fh):
     results = {}
     for (name, regexes) in rx.iteritems():
         assert isinstance(name, str)
-        assert isinstance(regexes, list)
+        assert isinstance(regexes, (list, tuple))
         patterns = {}
         for regex in regexes:
             assert regex.match
@@ -289,38 +289,18 @@ def watch(args, config = None, tag = None):
 
     # Set up the regular expressions
     regexes = {}
-    for regex in ['required', 'whitelist', 'blacklist']:
-        regexes[regex] = []
-        if config[section][regex]:
-            for r in config[section][regex]:
-                regexes[regex].append([r, False])
+    for r in ['required', 'whitelist', 'blacklist']:
+        if not config[section][r] is None:
+            regexes[r] = config[section][r]
+        else:
+            regexes[r] = []
 
-    # Check output for regexes
-    for l in oh:
-        # Check for required lines
-        for r in regexes['required']:
-            if r[0].search(l):
-                r[1] = True
-
-        for r in regexes['blacklist']:
-            if r[0].search(l):
-                r[1] = True
-
-        found = False
-        for r in regexes['whitelist']:
-            if r[0].search(l):
-                found = True
-
+    results = filter_text(regexes, oh)
 
     # Check to make sure all the required regex got hit
-    for r in regexes['required']:
-        if not r[1]:
-            errors += ('    * Did not find required output (%s)\n' % 
-                       r[0].pattern)
-
-    for r in regexes['blacklist']:
-        if r[1]:
-            errors += '    * Found blacklist output (%s)\n' % r[0].pattern
+    for (r, lines)  in results['required'].iteritems():
+        if len(lines) == 0:
+            errors += ('    * Did not find required output (%s)\n' % r)
 
     # Bail out if we don't have any errors
     if errors == '':

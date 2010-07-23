@@ -519,18 +519,18 @@ class TestWatch(TestBase):
         self.assertEquals('    * Exit code (3) was not a valid exit code', 
                           self.send_text[5])
 
-#    def test_required(self):
-#        '''Should search for required output'''
-#        self.conf('required = req, line')
-#        self.watch('out', 'line1', 'req', 'line3')
-#        self.assertFalse(self.send)
-#
-#        self.conf('required = req, more')
-#        self.watch('out', 'line1', 'line2', 'line3')
-#        self.assertEquals('    * Did not find required output (req)', 
-#                          self.send_text[5])
-#        self.assertEquals('    * Did not find required output (more)', 
-#                          self.send_text[6])
+    def test_required(self):
+        '''Should search for required output'''
+        self.conf('required = req, line')
+        self.watch('out', 'line1', 'req', 'line3')
+        self.assertFalse(self.send)
+
+        self.conf('required = req, more')
+        self.watch('out', 'line1', 'line2', 'line3')
+        self.assertEquals('    * Did not find required output (req)', 
+                          self.send_text[5])
+        self.assertEquals('    * Did not find required output (more)', 
+                          self.send_text[6])
 #    
 #    def test_whitelist(self):
 #        '''Should cause an error if there is non-whitelist output'''
