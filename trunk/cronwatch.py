@@ -91,6 +91,22 @@ def run(args, timeout = -1):
 
     return (output_file, return_code)
 
+def line_search(line, rx, find_all = False):
+    '''Compare a list of regular expressions to a line and return the 
+       results'''
+    found = []
+    for r in rx:
+        if r.search(line):
+            found.append(r.pattern)
+
+    if found:
+        if find_all and len(found) != len(rx):
+            return (False, found)
+        else:
+            return (True, found)
+    else:
+        return (False, [])
+
 def filter_text(rx, fh, not_found = []):
     '''Search file object fh for the rx(es) in rx
        
@@ -184,9 +200,9 @@ def read_config(config_file = None):
     # Set up the validation spec
     config_spec = StringIO()
     defaults = '''
-        required = force_regex_list(default = None)
-        blacklist = force_regex_list(default = None)
+        required = force_regex_list(default = list())
         whitelist = force_regex_list(default = None)
+        blacklist = force_regex_list(default = list())
         exit_codes = force_int_list(default = list(0))
         email_to = string(default = None)
         email_from = string(default = None)
@@ -303,6 +319,36 @@ def watch(args, config = None, tag = None):
     if exit not in config[section]['exit_codes']:
         errors += '    * Exit code (%i) was not a valid exit code\n' % exit
 
+    # Create the flags/vars for keeping track of what we've found
+    required = {}
+    for r in config[section]['required']: required[r.pattern] = False
+    
+    blacklist = {}
+    for r in config[section]['blacklist']: blacklist[r.pattern] = False
+
+    whitelist = True
+
+    # Go through the output file and prepare a new one for mailing out
+    for l in oh:
+        # Check for required lines
+        found = line_search(l, config[section]['required'])
+        if found[0]:
+            for p in found[1]:
+                required[p] = True
+
+        # Check for blacklist lines
+        found = line_search(l, config[section]['blacklist'])
+        if found[0]:
+            for p in found[1]:
+                blacklist[p] = True
+
+        # Check for whitelist lines
+        if config[section]['whitelist'] != None:
+            found = line_search(l, config[section]['whitelist'])
+            if not found[0]:
+                whitelist = False
+    oh.seek(0)
+
     # Set up the regular expressions
     regexes = {}
     for r in ['required', 'blacklist', 'whitelist']:
@@ -314,19 +360,17 @@ def watch(args, config = None, tag = None):
     results = filter_text(regexes, oh, not_found = ['whitelist'])
 
     # Check to make sure all the required regexes got hit
-    for r in sorted(results['required']):
-        lines = results['required'][r]
-        if not lines:
+    for r in sorted(required):
+        if not required[r]:
             errors += ('    * Did not find required output (%s)\n' % r)
 
     # Check to see if anything didn't match the regex whitelist
-    if results['whitelist']:
+    if not whitelist:
         errors += ('    * Found output not matched by whitelist')
 
     # Check to see if any of the blacklist regexes got hit
-    for r in sorted(results['blacklist']):
-        lines = results['blacklist'][r]
-        if lines:
+    for r in sorted(blacklist):
+        if blacklist[r]:
             errors += ('    * Found blacklist output (%s)\n' % r)
 
     # Bail out if we don't have any errors

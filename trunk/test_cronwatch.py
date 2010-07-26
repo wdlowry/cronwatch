@@ -88,6 +88,34 @@ class TestRun(TestBase):
         o = o.read()
         self.assertEquals('', o)
 
+class TestLineSearch(TestBase):
+    def test_match(self):
+        '''Should tell if a list of regular expressions matches a line and
+           which ones'''
+        r = cronwatch.line_search('test', [re.compile('t'),
+                                           re.compile('e'),
+                                           re.compile('1')])
+        self.assertEquals((True, ['t', 'e']), r)
+        
+    def test_no_match(self):
+        '''Should return an empty list if there were no matches'''
+        r = cronwatch.line_search('test', [re.compile('1'),
+                                           re.compile('2'),
+                                           re.compile('3')])
+        self.assertEquals((False, []), r)
+
+    def test_all(self):
+        '''Should return a list of just the ones that were found'''
+        r = cronwatch.line_search('test', [re.compile('t'),
+                                           re.compile('e'),
+                                           re.compile('s')], find_all = True)
+        self.assertEquals((True, ['t', 'e', 's']), r)
+        
+        r = cronwatch.line_search('test', [re.compile('t'),
+                                           re.compile('2'),
+                                           re.compile('3')], find_all = True)
+        self.assertEquals((False, ['t']), r)
+
 class TestSearchFile(TestBase):
     def setUp(self):
         self.tmp = StringIO()
@@ -211,9 +239,9 @@ class TestReadConfig(TestBase):
         c = cronwatch.read_config(cf.name)
 
         for s in ['test', '_default_']:
-            self.assertEquals(None, c[s]['required'])
+            self.assertEquals([], c[s]['required'])
             self.assertEquals(None, c[s]['whitelist'])
-            self.assertEquals(None, c[s]['blacklist'])
+            self.assertEquals([], c[s]['blacklist'])
             self.assertEquals([0], c[s]['exit_codes'])
             self.assertEquals(None, c[s]['email_to'])
             self.assertEquals(None, c[s]['email_from'])
