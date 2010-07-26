@@ -107,52 +107,6 @@ def line_search(line, rx, find_all = False):
     else:
         return (False, [])
 
-def filter_text(rx, fh, not_found = []):
-    '''Search file object fh for the rx(es) in rx
-       
-       rx format: {'name of setting': [list of regex objects]}
-       return format: {'name of setting': {regex pattern: [list of occurances]}}
-    '''
-    assert isinstance(rx, dict)
-    assert isinstance(not_found, (list, tuple))
-
-    # Create a working dict for returning
-    results = {}
-    for (name, regexes) in rx.iteritems():
-        assert isinstance(name, str)
-        assert isinstance(regexes, (list, tuple))
-        if name in not_found:
-            patterns = []
-            for regex in regexes:
-                assert regex.match
-        else:
-            patterns = {}
-            for regex in regexes:
-                assert regex.match
-                patterns[regex.pattern] = []
-        results[name] = patterns
-
-    # Cycle through the lines and try each regex against it
-    i = 1 
-    for line in fh:
-        for (name, regexes) in rx.iteritems():
-            if not regexes: continue
-            if name in not_found:
-                match = False
-                for regex in regexes:
-                    if regex.search(line):
-                        match = True
-                if not match:
-                    results[name].append(i)
-            else:
-                for regex in regexes:
-                    if regex.search(line):
-                        results[name][regex.pattern].append(i)
-
-        i += 1
-
-    return results
-
 class VdtValueMsgError(VdtValueError):
     def __init__(self, msg):
         ValidateError.__init__(self, msg)
@@ -348,16 +302,6 @@ def watch(args, config = None, tag = None):
             if not found[0]:
                 whitelist = False
     oh.seek(0)
-
-    # Set up the regular expressions
-    regexes = {}
-    for r in ['required', 'blacklist', 'whitelist']:
-        if not config[section][r] is None:
-            regexes[r] = config[section][r]
-        else:
-            regexes[r] = []
-
-    results = filter_text(regexes, oh, not_found = ['whitelist'])
 
     # Check to make sure all the required regexes got hit
     for r in sorted(required):
