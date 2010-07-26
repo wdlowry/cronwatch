@@ -116,64 +116,6 @@ class TestLineSearch(TestBase):
                                            re.compile('3')], find_all = True)
         self.assertEquals((False, ['t']), r)
 
-class TestSearchFile(TestBase):
-    def setUp(self):
-        self.tmp = StringIO()
-
-    def tearDown(self):
-        self.tmp.close()
-
-    def write(self, contents):
-        '''Write contents to the temporary file'''
-        self.tmp.write(contents)
-        self.tmp.flush()
-        self.tmp.seek(0)
-
-    def test_simple(self):
-        '''Should find the lines with the search expression'''
-        self.write('one\ntwo\nthree\n1\n2\n3')
-        r = cronwatch.filter_text({'first': [re.compile('one')]}, self.tmp)
-        self.assertEqual({'first': {'one': [1]}}, r)
-
-    def test_complex(self):
-        '''Should find all the lines with the search expressions'''
-        self.write('one\ntwo\nthree\n1\n2\n3')
-        r1 = re.compile('one')
-        r2 = re.compile('two')
-        r3 = re.compile('[1-3]')
-        r4 = re.compile('not')
-        rx = {'1': [r1], '2': [r2, r3], '3': [r1, r4], '4': [r4], '5': []}
-        r = cronwatch.filter_text(rx, self.tmp)
-        self.assertEqual({'1': {'one': [1]},
-                          '2': {'two': [2], '[1-3]': [4, 5, 6]},
-                          '3': {'one': [1], 'not': []},
-                          '4': {'not': []},
-                          '5': {}}, r)
-
-    def test_not_found(self):
-        '''Should only mark lines that match none of the search expressions'''
-        self.write('one\ntwo\nthree\n1\n2\n3')
-        rx = {'1': [re.compile('[1-3]')]}
-        r = cronwatch.filter_text(rx, self.tmp, not_found = ['1'])
-        self.assertEqual({'1': [1, 2, 3]}, r)
-
-    def test_not_found_complex(self):
-        '''Should only mark lines that match none of the search expressions'''
-        self.write('one\ntwo\nthree\n1\n2\n3')
-        r1 = re.compile('one')
-        r2 = re.compile('two')
-        r3 = re.compile('[1-3]')
-        r4 = re.compile('not')
-        r5 = re.compile('.*')
-        rx = {'1': [r1], '2': [r2, r3], '3': [r5], '4': [r4], '5': []}
-        r = cronwatch.filter_text(rx, self.tmp,
-                                  not_found = ['1', '2', '3', '4', '5'])
-        self.assertEqual({'1': [2, 3, 4, 5, 6],
-                          '2': [1, 3],
-                          '3': [],
-                          '4': [1, 2, 3, 4, 5, 6],
-                          '5': []}, r)
-
 class TestIsRegex(TestBase):
     def test_not_string(self):
         '''Should raise VdtTypeError if it's not a string'''
