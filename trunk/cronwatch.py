@@ -34,6 +34,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from getpass import getuser
 from socket import getfqdn, gethostname
+from datetime import datetime
 
 from configobj import ConfigObj, flatten_errors, get_extra_values
 from validate import Validator, VdtTypeError, VdtValueError, is_list, is_int_list, force_list, ValidateError
@@ -248,6 +249,9 @@ def send_mail(sendmail, subject, text, to_addr = None, from_addr = None,
 
     call_sendmail(shlex.split(sendmail) + [to_addr], msg.as_string())
 
+def get_now():
+    '''Return a string with the current date and time'''
+    return datetime.now().strftime('%c')
 
 ###############################################################################
 # Watch function
@@ -259,7 +263,13 @@ def watch(args, config = None, tag = None):
     config = read_config(config)
 
     # Run the actual program
+    start_time = get_now()
     (oh, exit) = run(args)
+    end_time = get_now()
+
+    # Determine the tag automatically
+    if tag is None:
+        tag = os.path.basename(args[0])
     
     # Determine the conf section to use
     if not config.has_key(tag):
@@ -267,58 +277,71 @@ def watch(args, config = None, tag = None):
     else:
         section = tag
 
-    errors = ''
+    errors = []
 
     # Check for correct error codes
     if exit not in config[section]['exit_codes']:
-        errors += '    * Exit code (%i) was not a valid exit code\n' % exit
+        errors.append('Exit code (%i) was not a valid exit code' % exit)
 
-    # Create the flags/vars for keeping track of what we've found
-    required = {}
-    for r in config[section]['required']: required[r.pattern] = False
-    
-    blacklist = {}
-    for r in config[section]['blacklist']: blacklist[r.pattern] = False
+    ## Create the flags/vars for keeping track of what we've found
+    #required = {}
+    #for r in config[section]['required']: required[r.pattern] = False
+    #
+    #blacklist = {}
+    #for r in config[section]['blacklist']: blacklist[r.pattern] = False
 
-    whitelist = True
+    #whitelist = True
+
+    outfile = TemporaryFile()
 
     # Go through the output file and prepare a new one for mailing out
+    outline = None
     for l in oh:
-        # Check for required lines
-        found = line_search(l, config[section]['required'])
-        if found[0]:
-            for p in found[1]:
-                required[p] = True
+        outline = '  %s' % l
 
-        # Check for blacklist lines
-        found = line_search(l, config[section]['blacklist'])
-        if found[0]:
-            for p in found[1]:
-                blacklist[p] = True
+    #    # Check for required lines
+    #    found = line_search(l, config[section]['required'])
+    #    if found[0]:
+    #        for p in found[1]:
+    #            required[p] = True
 
-        # Check for whitelist lines
-        if config[section]['whitelist'] != None:
-            found = line_search(l, config[section]['whitelist'])
-            if not found[0]:
-                whitelist = False
-    oh.seek(0)
+    #    # Check for whitelist lines
+    #    if config[section]['whitelist'] != None:
+    #        found = line_search(l, config[section]['whitelist'])
+    #        if not found[0]:
+    #            whitelist = False
+    #            outline = '* %s' % l
 
-    # Check to make sure all the required regexes got hit
-    for r in sorted(required):
-        if not required[r]:
-            errors += ('    * Did not find required output (%s)\n' % r)
+    #    # Check for blacklist lines
+    #    found = line_search(l, config[section]['blacklist'])
+    #    if found[0]:
+    #        for p in found[1]:
+    #            blacklist[p] = True
+    #        outline = '! %s' % l
 
-    # Check to see if anything didn't match the regex whitelist
-    if not whitelist:
-        errors += ('    * Found output not matched by whitelist')
+        outfile.write(outline)
 
-    # Check to see if any of the blacklist regexes got hit
-    for r in sorted(blacklist):
-        if blacklist[r]:
-            errors += ('    * Found blacklist output (%s)\n' % r)
+    outfile.flush()
+    outfile.seek(0)
 
-    # Bail out if we don't have any errors
-    if errors == '':
+    #oh.seek(0)
+
+    ## Check to make sure all the required regexes got hit
+    #for r in sorted(required):
+    #    if not required[r]:
+    #        errors += ('    * Did not find required output (%s)\n' % r)
+
+    ## Check to see if anything didn't match the regex whitelist
+    #if not whitelist:
+    #    errors += ('    * Found output not matched by whitelist')
+
+    ## Check to see if any of the blacklist regexes got hit
+    #for r in sorted(blacklist):
+    #    if blacklist[r]:
+    #        errors += ('    * Found blacklist output (%s)\n' % r)
+
+    ## Bail out if we don't have any errors
+    if not errors and not config[section]['email_success']:
         return
 
     # Construct the e-mail
@@ -327,12 +350,28 @@ def watch(args, config = None, tag = None):
     from_addr = config[section]['email_from']
     sendmail = config[section]['email_sendmail']
 
-    header = 'The following command line executed with an error:\n'
-    header += '    %s\n' % ' '.join(args)
-    header += '\n\n'
-    header += 'Errors:\n'
-    header += errors
-    text = header
+    text = 'The following command line executed successfully:\n'
+    #text = 'The following command line executed with an error:\n'
+    text += '\t%s\n' % ' '.join(args)
+    text += '\n'
+
+    text += 'Started execution at:\t%s\n' % start_time
+    text += 'Finished execution at:\t%s\n' % end_time
+    text += 'Exit code:\t\t%i\n' % exit
+    text += '\n'
+
+    if errors:
+        text += 'Errors:\n'
+        for e in errors:
+            text += '\t* %s\n' % e
+        text += '\n\n'
+
+    if outline is None:
+        text += 'No output.\n'
+    else:
+        text += 'Output:\n'
+        text += outfile.read()
+
     send_mail(sendmail, subject, text, to_addr, from_addr)
 
 ###############################################################################

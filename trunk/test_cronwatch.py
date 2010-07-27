@@ -29,7 +29,7 @@ from test_base import *
 from validate import VdtTypeError, VdtValueError
 from configobj import get_extra_values
 from getpass import getuser
-
+from datetime import datetime
 
 import cronwatch
 
@@ -398,6 +398,11 @@ class TestSendMail(TestBase):
                           lines[13])
         self.assertEquals('html', lines[17])
 
+class TestGetNow(TestBase):
+    def test_get_now(self):
+        '''Should return a formatted string for right now'''
+        # I'm not sure this is always going to work
+        self.assertEquals(datetime.now().strftime('%c'), cronwatch.get_now())
 
 class TestWatch(TestBase):
     '''Test the watch() function'''
@@ -408,13 +413,16 @@ class TestWatch(TestBase):
         self.tempfile = self.tempfile[1]
 
         self.cf = NamedTemporaryFile()
-
+    
+        self.time = 0
         self.old_config = cronwatch.CONFIGFILE
         cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
 
         self.send = False
         self.old_send_mail = cronwatch.send_mail
         cronwatch.send_mail = self.send_mail
+        self.old_get_now = cronwatch.get_now
+        cronwatch.get_now = self.get_now
 
     def tearDown(self):
         os.remove(self.tempfile)
@@ -423,6 +431,7 @@ class TestWatch(TestBase):
 
         cronwatch.CONFIGFILE = self.old_config
         cronwatch.send_mail = self.old_send_mail
+        cronwatch.get_now = self.old_get_now
 
     def send_mail(self, sendmail, subject, text, to_addr = None, 
                   from_addr = None, html = None):
@@ -434,67 +443,110 @@ class TestWatch(TestBase):
         self.send_text = text.split('\n')
         self.send_from = from_addr
 
+    def get_now(self):
+        t = self.time
+        self.time += 1
+        return 'time%i' % t
+
     def conf(self, text):
         '''Write the config file'''
         self.cf.write('[job]\n')
         self.cf.write(text)
         self.cf.seek(0)
     
-    def watch(self, cmd, *args):
+    def watch(self, cmd, *args, **kwargs):
         self.cmd_line = ['./test_script.sh', cmd, self.tempfile] + list(args)
-        cronwatch.watch(self.cmd_line, config = self.cf.name, tag = 'job')
+        tag = 'job'
+        if kwargs.has_key('tag'): tag = kwargs['tag']
+        cronwatch.watch(self.cmd_line, config = self.cf.name, tag = tag)
         self.cmd_line = ' '.join(self.cmd_line)
     
-    def test_simple(self):
+    def test_no_output(self):
         '''Should run the executable with arguments and just quit'''
+        self.conf('')
         self.watch('quiet', 'arg')
         o = [l.rstrip() for l in open(self.tempfile).readlines()]
         self.assertEquals('quiet arg', o[0])
         self.assertFalse(self.send)
 
+    def test_email_success(self):
+        '''Should send an e-mail if the email_success flag is set'''
+        self.conf('email_success = on')
+        self.watch('quiet', 'arg')
+        self.assertTrue(self.send)
+
+    def test_no_tag(self):
+        '''Should use the default section if the tag doesn't exist in the 
+           config'''
+        self.conf('[_default_]\nemail_success = on\n')
+        self.watch('quiet', 'arg', tag = 'doesnotexist')
+        self.assertTrue(self.send)
+
+    def test_auto_tag(self):
+        '''Should figure out the tag from the script name by default'''
+        self.conf('[test_script.sh]\nemail_success = on\n')
+        self.watch('quiet', 'arg', tag = None)
+        self.assertTrue(self.send)
+
     def test_email_subject(self):
         '''Should set the e-mail subject'''
-        self.watch('exit', '1')
+        self.conf('email_success = on')
+        self.watch('quiet', 'arg')
         self.assertEquals('cronwatch <%s> %s' % 
                           (get_user_hostname(), self.cmd_line),
                           self.send_subject)
     
     def test_email_to(self):
         '''Should set the e-mail to address'''
-        self.watch('exit', '1')
+        self.conf('email_success = on')
+        self.watch('quiet', 'arg')
         self.assertEquals(None, self.send_to)
 
-        self.conf('email_to = testuser')
-        self.watch('exit', '1')
+        self.conf('email_success = on\nemail_to = testuser')
+        self.watch('quiet', 'arg')
         self.assertEquals('testuser', self.send_to)
 
     def test_email_from(self):
         '''Should set the e-mail from address'''
-        self.watch('exit', '1')
+        self.conf('email_success = on')
+        self.watch('quiet', 'arg')
         self.assertEquals(None, self.send_from)
 
-        self.conf('email_from = testuser')
-        self.watch('exit', '1')
+        self.conf('email_success = on\nemail_from = testuser')
+        self.watch('quiet', 'arg')
         self.assertEquals('testuser', self.send_from)
 
     def test_email_sendmail(self):
         '''Should set the sendmail path'''
-        self.watch('exit', '1')
+        self.conf('email_success = on')
+        self.watch('quiet', 'arg')
         self.assertEquals('/usr/lib/sendmail', self.send_sendmail)
 
-        self.conf('email_sendmail = sm')
-        self.watch('exit', '1')
+        self.conf('email_success = on\nemail_sendmail = sm')
+        self.watch('quiet', 'arg')
         self.assertEquals('sm', self.send_sendmail)
 
     def test_email_body(self):
-        '''Should say if the job completed successfully'''
-        self.watch('exit', '1')
-        self.assertEquals('The following command line executed with an error:',
+        '''Should format the body correctly'''
+        self.conf('email_success = on')
+        self.watch('quiet', 'arg')
+        self.assertEquals('The following command line executed successfully:',
                           self.send_text[0])
-        self.assertEquals('    ' + self.cmd_line, self.send_text[1])
+        self.assertEquals('\t' + self.cmd_line, self.send_text[1])
         self.assertEquals('', self.send_text[2])
-        self.assertEquals('', self.send_text[3])
-        self.assertEquals('Errors:', self.send_text[4])
+        self.assertEquals('Started execution at:\ttime0', self.send_text[3])
+        self.assertEquals('Finished execution at:\ttime1', self.send_text[4])
+        self.assertEquals('Exit code:\t\t0', self.send_text[5])
+        self.assertEquals('', self.send_text[6])
+        self.assertEquals('No output.', self.send_text[7])
+
+    def test_email_output(self):
+        '''Should append the output to the end of the file'''
+        self.conf('email_success = on')
+        self.watch('out', 'a', 'b')
+        self.assertEquals('Output:', self.send_text[7])
+        self.assertEquals('  a', self.send_text[8])
+        self.assertEquals('  b', self.send_text[9])
     
     def test_exit_codes(self):
         '''Should send a mail if the exit code doesn't match'''
@@ -508,45 +560,50 @@ class TestWatch(TestBase):
 
         self.conf('exit_codes = 1, 2')
         self.watch('exit', '3')
-        self.assertEquals('    * Exit code (3) was not a valid exit code', 
-                          self.send_text[5])
+        self.assertEquals('\t* Exit code (3) was not a valid exit code', 
+                           self.send_text[8])
 
-    def test_required(self):
-        '''Should search for required output'''
-        self.conf('required = req, line')
-        self.watch('out', 'line1', 'req', 'line3')
-        self.assertFalse(self.send)
+    #def test_required(self):
+    #    '''Should search for required output'''
+    #    self.conf('required = req, line')
+    #    self.watch('out', 'line1', 'req', 'line3')
+    #    self.assertFalse(self.send)
 
-        self.conf('required = req, more')
-        self.watch('out', 'line1', 'line2', 'line3')
-        self.assertEquals('    * Did not find required output (more)', 
-                          self.send_text[5])
-        self.assertEquals('    * Did not find required output (req)', 
-                          self.send_text[6])
-    
-    def test_whitelist(self):
-        '''Should cause an error if there is non-whitelist output'''
-        self.conf('whitelist = white, bright')
-        self.watch('out', 'whitelight', 'brightlight', 'whitebright')
-        self.assertFalse(self.send)
+    #    self.conf('required = req, more')
+    #    self.watch('out', 'line1', 'line2', 'line3')
+    #    self.assertEquals('    * Did not find required output (more)', 
+    #                      self.send_text[5])
+    #    self.assertEquals('    * Did not find required output (req)', 
+    #                      self.send_text[6])
+    #
+    #def test_whitelist(self):
+    #    '''Should cause an error if there is non-whitelist output'''
+    #    self.conf('whitelist = white, bright')
+    #    self.watch('out', 'whitelight', 'brightlight', 'whitebright')
+    #    self.assertFalse(self.send)
 
-        self.conf('whitelist = white, bright')
-        self.watch('out', 'whitelight', 'black', 'whitebright')
-        self.assertEquals('    * Found output not matched by whitelist', 
-                          self.send_text[5])
+    #    self.conf('whitelist = white, bright')
+    #    self.watch('out', 'whitelight', 'black', 'whitebright')
+    #    self.assertEquals('    * Found output not matched by whitelist', 
+    #                      self.send_text[5])
+    #    self.assertEquals('', self.send_text[6])
+    #    self.assertEquals('Output:', self.send_text[7])
+    #    self.assertEquals('  whitelight', self.send_text[8])
+    #    self.assertEquals('* black', self.send_text[9])
+    #    self.assertEquals('  whitebright', self.send_text[10])
 
-    def test_blacklist(self):
-        '''Should cause an error if there is blacklist output'''
-        self.conf('blacklist = black, dark')
-        self.watch('out', 'line1', 'line2', 'line3')
-        self.assertFalse(self.send)
+    #def test_blacklist(self):
+    #    '''Should cause an error if there is blacklist output'''
+    #    self.conf('blacklist = black, dark')
+    #    self.watch('out', 'line1', 'line2', 'line3')
+    #    self.assertFalse(self.send)
 
-        self.conf('blacklist = black, dark')
-        self.watch('out', 'black', 'dark', 'line3')
-        self.assertEquals('    * Found blacklist output (black)', 
-                          self.send_text[5])
-        self.assertEquals('    * Found blacklist output (dark)', 
-                          self.send_text[6])
+    #    self.conf('blacklist = black, dark')
+    #    self.watch('out', 'black', 'dark', 'line3')
+    #    self.assertEquals('    * Found blacklist output (black)', 
+    #                      self.send_text[5])
+    #    self.assertEquals('    * Found blacklist output (dark)', 
+    #                      self.send_text[6])
 
 #required output
 #blacklist output
