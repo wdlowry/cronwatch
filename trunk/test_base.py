@@ -24,6 +24,7 @@ import sys
 from StringIO import StringIO
 from getpass import getuser
 from socket import getfqdn, gethostname
+from shutil import rmtree
 
 
 __all__ = ['TestBase', 'get_user_hostname']
@@ -44,10 +45,21 @@ def get_user_hostname(fqdn = True):
 ###############################################################################
 class TestBase(unittest.TestCase):
     '''Base class to add common idioms'''
-
-    def setUp(self):
-        unittest.TestCase.setUp(self)
+    def __init__(self, *args, **kwargs):
+        unittest.TestCase.__init__(self, *args, **kwargs)
         self._capture = False
+        self.__cleanup = []
+
+    def __del__(self):
+        self.cleanup()
+
+    def register_cleanup(self, path):
+        self.__cleanup.append(path)
+
+    def cleanup(self):
+        for path in self.__cleanup:
+            rmtree(path)
+        self.__cleanup = []
 
     def assertRaisesError(self, exception, message, func, *args, **kwargs):
         '''Similar to assertRaises, but allows a check of the message
