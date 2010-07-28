@@ -326,8 +326,6 @@ def watch(args, config = None, tag = None):
     outfile.flush()
     outfile.seek(0)
 
-    #oh.seek(0)
-
     # Check to make sure all the required regexes got hit
     for r in sorted(required):
         if not required[r]:
@@ -373,19 +371,18 @@ def watch(args, config = None, tag = None):
             text += '\t* %s\n' % e
         text += '\n\n'
 
-    if outline is None:
-        text += 'No output.\n'
+    text += 'Output:\n'
+
+    maxsize = config[section]['email_maxsize']
+    text += outfile.read(maxsize)
+
+    if maxsize > -1 and len(text) > config[section]['email_maxsize']:
+        text = text [:config[section]['email_maxsize']]
+        text += '\n[Output truncated]'
     else:
-        text += 'Output:\n'
-        if config[section]['email_maxsize'] != -1:
-            text += outfile.read(config[section]['email_maxsize'] + lines * 2)
-            if len(outfile.read(1)) == 0:
-               text += '\n[EOF]'
-            else:
-               text += '\n[Output truncated]'
-        else:
-            text += outfile.read()
-            text += '\n[EOF]'
+        if text[-1] != '\n':
+            text += '\n'
+        text += '[EOF]'
 
     send_mail(sendmail, subject, text, to_addr, from_addr)
 
