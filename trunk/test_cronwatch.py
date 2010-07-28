@@ -609,28 +609,31 @@ class TestWatch(TestBase):
         self.assertEquals('! dark', self.send_text[14])
         self.assertEquals('  line3', self.send_text[15])
 
-    #def test_logfile(self):
-    #    '''Should open and write to a log file'''
-    #    logfile = NamedTemporaryFile()
-    #    logfile.write('line1\n')
-    #    logfile.seek(0)
+    def test_logfile(self):
+        '''Should open and write to a log file'''
+        logfile = NamedTemporaryFile()
+        logfile.write('line1\n')
+        logfile.seek(0)
 
-    #    self.watch('logfile = %s\nemail_maxsize = 1' % logfile.name, 
-    #               'out', 'line1', 'line2')
-    #    o = logfile.read().split('\n')
+        self.watch('logfile = %s\nemail_maxsize = 1' % logfile.name, 
+                   'out', 'line1', 'line2')
+        o = logfile.read().split('\n')
 
-    #    self.assertEquals('line1', o[0])
-    #    self.assertEquals('The following command line executed successfully:',
-    #                      o[1])
-    #    self.assertEquals('\t' + self.cmd_line, o[2])
-    #    self.assertEquals('', o[3])
-    #    self.assertEquals('Started execution at:\ttime0', o[4])
-    #    self.assertEquals('Finished execution at:\ttime1', o[5])
-    #    self.assertEquals('Exit code:\t\t0', o[6])
-    #    self.assertEquals('', o[7])
-    #    self.assertEquals('Output:', o[8])
-    #    self.assertEquals('[EOF]', o[8])
-    #    self.assertEquals('', o[9])
+        self.assertEquals('line1', o[0])
+        self.assertEquals('The following command line executed successfully:',
+                          o[1])
+        self.assertEquals('\t' + self.cmd_line, o[2])
+        self.assertEquals('', o[3])
+        self.assertEquals('Started execution at:\ttime0', o[4])
+        self.assertEquals('Finished execution at:\ttime1', o[5])
+        self.assertEquals('Exit code:\t\t0', o[6])
+        self.assertEquals('', o[7])
+        self.assertEquals('Output:', o[8])
+        self.assertEquals('  line1', o[9])
+        self.assertEquals('  line2', o[10])
+        self.assertEquals('[EOF]', o[11])
+        self.assertEquals('', o[12])
+        self.assertEquals('', o[13])
 
 if __name__ == '__main__':
     unittest.main()
