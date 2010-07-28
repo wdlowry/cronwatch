@@ -342,11 +342,7 @@ def watch(args, config = None, tag = None):
             errors.append('Output matched by blacklist (%s) ' % r +
                           '(denoted by "!" in output)')
 
-    # Bail out if we don't have any errors
-    if not errors and not config[section]['email_success']:
-        return
-
-    # Construct the e-mail
+    # Construct the e-mail/log
     subject = 'cronwatch <%s> %s' % (get_user_hostname(), ' '.join(args))
     to_addr = config[section]['email_to']
     from_addr = config[section]['email_from']
@@ -372,10 +368,22 @@ def watch(args, config = None, tag = None):
         text += '\n\n'
 
     text += 'Output:\n'
-
+    
     maxsize = config[section]['email_maxsize']
     text += outfile.read(maxsize)
 
+    # Start the log file
+    if config[section]['logfile']:
+        logfile = open(config[section]['logfile'], 'a')
+        logfile.write(text)
+    
+        for l in outfile:
+            logfile.write(l)
+        
+        if l[-1] != '\n':
+            logfile.write('\n')
+        logfile.write('[EOF]\n\n')
+        
     if maxsize > -1 and len(text) > config[section]['email_maxsize']:
         text = text [:config[section]['email_maxsize']]
         text += '\n[Output truncated]'
@@ -384,7 +392,8 @@ def watch(args, config = None, tag = None):
             text += '\n'
         text += '[EOF]'
 
-    send_mail(sendmail, subject, text, to_addr, from_addr)
+    if errors or config[section]['email_success']:
+        send_mail(sendmail, subject, text, to_addr, from_addr)
 
 ###############################################################################
 # Main function
