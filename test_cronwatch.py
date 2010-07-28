@@ -428,6 +428,7 @@ class TestWatch(TestBase):
         self.send_to = to_addr
         self.send_subject = subject
         self.send_text = text.split('\n')
+        self.send_text_raw = text
         self.send_from = from_addr
 
     def get_now(self):
@@ -518,7 +519,8 @@ class TestWatch(TestBase):
         self.assertEquals('Finished execution at:\ttime1', self.send_text[4])
         self.assertEquals('Exit code:\t\t0', self.send_text[5])
         self.assertEquals('', self.send_text[6])
-        self.assertEquals('No output.', self.send_text[7])
+        self.assertEquals('Output:', self.send_text[7])
+        self.assertEquals('[EOF]', self.send_text[8])
 
     def test_email_output(self):
         '''Should append the output to the end of the file'''
@@ -526,23 +528,25 @@ class TestWatch(TestBase):
         self.assertEquals('Output:', self.send_text[7])
         self.assertEquals('  a', self.send_text[8])
         self.assertEquals('  b', self.send_text[9])
-        self.assertEquals('', self.send_text[10])
-        self.assertEquals('[EOF]', self.send_text[11])
+        self.assertEquals('[EOF]', self.send_text[10])
     
     def test_email_maxsize(self):
         '''Should truncate the e-mail output if it's too big'''
         self.watch('email_success = on\nemail_maxsize = -1', 'out', 'a' * 4097)
         self.assertEquals('  ' + 'a' * 4097, self.send_text[8])
-        self.assertEquals('', self.send_text[9])
-        self.assertEquals('[EOF]', self.send_text[10])
-
-        self.watch('email_success = on\nemail_maxsize = 3', 'out', 'aa')
-        self.assertEquals('  aa', self.send_text[8])
-        self.assertEquals('', self.send_text[9])
-        self.assertEquals('[EOF]', self.send_text[10])
+        self.assertEquals('[EOF]', self.send_text[9])
         
-        self.watch('email_success = on\nemail_maxsize = 1', 'out', 'aaaaa')
-        self.assertEquals('  a', self.send_text[8])
+        self.watch('email_success = on\nemail_maxsize = -1', 'out', 'line1')
+        size = len(self.send_text_raw) - len('[EOF]')
+        
+        self.watch('email_success = on\nemail_maxsize = %i' % size,
+                   'out', 'line1')
+        self.assertEquals('  line1', self.send_text[8])
+        self.assertEquals('[EOF]', self.send_text[9])
+
+        self.watch('email_success = on\nemail_maxsize = %i' % (size - 1),
+                   'out', 'line1')
+        self.assertEquals('  line1', self.send_text[8])
         self.assertEquals('[Output truncated]', self.send_text[9])
 
     def test_email_error(self):
@@ -587,8 +591,7 @@ class TestWatch(TestBase):
         self.assertEquals('  whitelight', self.send_text[12])
         self.assertEquals('* black', self.send_text[13])
         self.assertEquals('  whitebright', self.send_text[14])
-        self.assertEquals('', self.send_text[15])
-        self.assertEquals('[EOF]', self.send_text[16])
+        self.assertEquals('[EOF]', self.send_text[15])
 
     def test_blacklist(self):
         '''Should cause an error if there is blacklist output'''
@@ -606,7 +609,28 @@ class TestWatch(TestBase):
         self.assertEquals('! dark', self.send_text[14])
         self.assertEquals('  line3', self.send_text[15])
 
-#logfile
+    #def test_logfile(self):
+    #    '''Should open and write to a log file'''
+    #    logfile = NamedTemporaryFile()
+    #    logfile.write('line1\n')
+    #    logfile.seek(0)
+
+    #    self.watch('logfile = %s\nemail_maxsize = 1' % logfile.name, 
+    #               'out', 'line1', 'line2')
+    #    o = logfile.read().split('\n')
+
+    #    self.assertEquals('line1', o[0])
+    #    self.assertEquals('The following command line executed successfully:',
+    #                      o[1])
+    #    self.assertEquals('\t' + self.cmd_line, o[2])
+    #    self.assertEquals('', o[3])
+    #    self.assertEquals('Started execution at:\ttime0', o[4])
+    #    self.assertEquals('Finished execution at:\ttime1', o[5])
+    #    self.assertEquals('Exit code:\t\t0', o[6])
+    #    self.assertEquals('', o[7])
+    #    self.assertEquals('Output:', o[8])
+    #    self.assertEquals('[EOF]', o[8])
+    #    self.assertEquals('', o[9])
 
 if __name__ == '__main__':
     unittest.main()
