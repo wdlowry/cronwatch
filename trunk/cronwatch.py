@@ -374,7 +374,9 @@ def watch(args, config = None, tag = None):
 
     # Start the log file
     if config[section]['logfile']:
-        logfile = open(config[section]['logfile'], 'a')
+        fn = datetime.now().strftime(
+                config[section]['logfile'].replace('%TAG%', tag))
+        logfile = open(fn, 'a')
         logfile.write(text)
     
         for l in outfile:
