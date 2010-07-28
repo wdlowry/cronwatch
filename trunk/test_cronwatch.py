@@ -406,36 +406,23 @@ class TestGetNow(TestBase):
 
 class TestWatch(TestBase):
     '''Test the watch() function'''
-    
     def setUp(self):
-        self.tempfile = mkstemp()
-        os.close(self.tempfile[0])
-        self.tempfile = self.tempfile[1]
-
-        self.cf = NamedTemporaryFile()
-    
         self.time = 0
         self.old_config = cronwatch.CONFIGFILE
         cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
 
-        self.send = False
         self.old_send_mail = cronwatch.send_mail
         cronwatch.send_mail = self.send_mail
         self.old_get_now = cronwatch.get_now
         cronwatch.get_now = self.get_now
 
     def tearDown(self):
-        os.remove(self.tempfile)
-
-        self.cf.close()
-
         cronwatch.CONFIGFILE = self.old_config
         cronwatch.send_mail = self.old_send_mail
         cronwatch.get_now = self.old_get_now
 
     def send_mail(self, sendmail, subject, text, to_addr = None, 
                   from_addr = None, html = None):
-
         self.send = True
         self.send_sendmail = sendmail
         self.send_to = to_addr
@@ -448,88 +435,81 @@ class TestWatch(TestBase):
         self.time += 1
         return 'time%i' % t
 
-    def conf(self, text):
-        '''Write the config file'''
-        self.cf.write('[job]\n')
-        self.cf.write(text)
-        self.cf.seek(0)
-    
-    def watch(self, cmd, *args, **kwargs):
-        self.cmd_line = ['./test_script.sh', cmd, self.tempfile] + list(args)
+    def watch(self, conf, cmd, *args, **kwargs):
+        self.send = False
+
+        cf = NamedTemporaryFile()
+        cf.write('[job]\n%s' % conf)
+        cf.seek(0)
+        
+        tf = NamedTemporaryFile()
+
+        self.cmd_line = ['./test_script.sh', cmd, tf.name] + list(args)
         tag = 'job'
         if kwargs.has_key('tag'): tag = kwargs['tag']
-        cronwatch.watch(self.cmd_line, config = self.cf.name, tag = tag)
+        cronwatch.watch(self.cmd_line, config = cf.name, tag = tag)
         self.cmd_line = ' '.join(self.cmd_line)
+
+        return tf.read()
     
     def test_no_output(self):
         '''Should run the executable with arguments and just quit'''
-        self.conf('')
-        self.watch('quiet', 'arg')
-        o = [l.rstrip() for l in open(self.tempfile).readlines()]
-        self.assertEquals('quiet arg', o[0])
+        o = self.watch('', 'quiet', 'arg')
+        self.assertEquals('quiet arg\n', o)
         self.assertFalse(self.send)
 
     def test_email_success(self):
         '''Should send an e-mail if the email_success flag is set'''
-        self.conf('email_success = on')
-        self.watch('quiet', 'arg')
+        self.watch('email_success = on', 'quiet', 'arg')
         self.assertTrue(self.send)
 
     def test_no_tag(self):
         '''Should use the default section if the tag doesn't exist in the 
            config'''
-        self.conf('[_default_]\nemail_success = on\n')
-        self.watch('quiet', 'arg', tag = 'doesnotexist')
+        self.watch('[_default_]\nemail_success = on\n',
+                   'quiet', 'arg', tag = 'doesnotexist')
         self.assertTrue(self.send)
 
     def test_auto_tag(self):
         '''Should figure out the tag from the script name by default'''
-        self.conf('[test_script.sh]\nemail_success = on\n')
-        self.watch('quiet', 'arg', tag = None)
+        self.watch('[test_script.sh]\nemail_success = on\n',
+                   'quiet', 'arg', tag = None)
         self.assertTrue(self.send)
 
     def test_email_subject(self):
         '''Should set the e-mail subject'''
-        self.conf('email_success = on')
-        self.watch('quiet', 'arg')
+        self.watch('email_success = on', 'quiet', 'arg')
         self.assertEquals('cronwatch <%s> %s' % 
                           (get_user_hostname(), self.cmd_line),
                           self.send_subject)
     
     def test_email_to(self):
         '''Should set the e-mail to address'''
-        self.conf('email_success = on')
-        self.watch('quiet', 'arg')
+        self.watch('email_success = on', 'quiet', 'arg')
         self.assertEquals(None, self.send_to)
 
-        self.conf('email_success = on\nemail_to = testuser')
-        self.watch('quiet', 'arg')
+        self.watch('email_success = on\nemail_to = testuser', 'quiet', 'arg')
         self.assertEquals('testuser', self.send_to)
 
     def test_email_from(self):
         '''Should set the e-mail from address'''
-        self.conf('email_success = on')
-        self.watch('quiet', 'arg')
+        self.watch('email_success = on', 'quiet', 'arg')
         self.assertEquals(None, self.send_from)
 
-        self.conf('email_success = on\nemail_from = testuser')
-        self.watch('quiet', 'arg')
+        self.watch('email_success = on\nemail_from = testuser', 'quiet', 'arg')
         self.assertEquals('testuser', self.send_from)
 
     def test_email_sendmail(self):
         '''Should set the sendmail path'''
-        self.conf('email_success = on')
-        self.watch('quiet', 'arg')
+        self.watch('email_success = on', 'quiet', 'arg')
         self.assertEquals('/usr/lib/sendmail', self.send_sendmail)
 
-        self.conf('email_success = on\nemail_sendmail = sm')
-        self.watch('quiet', 'arg')
+        self.watch('email_success = on\nemail_sendmail = sm', 'quiet', 'arg')
         self.assertEquals('sm', self.send_sendmail)
 
     def test_email_body(self):
         '''Should format the body correctly'''
-        self.conf('email_success = on')
-        self.watch('quiet', 'arg')
+        self.watch('email_success = on', 'quiet', 'arg')
         self.assertEquals('The following command line executed successfully:',
                           self.send_text[0])
         self.assertEquals('\t' + self.cmd_line, self.send_text[1])
@@ -542,24 +522,38 @@ class TestWatch(TestBase):
 
     def test_email_output(self):
         '''Should append the output to the end of the file'''
-        self.conf('email_success = on')
-        self.watch('out', 'a', 'b')
+        self.watch('email_success = on', 'out', 'a', 'b')
         self.assertEquals('Output:', self.send_text[7])
         self.assertEquals('  a', self.send_text[8])
         self.assertEquals('  b', self.send_text[9])
+        self.assertEquals('', self.send_text[10])
+        self.assertEquals('[EOF]', self.send_text[11])
+    
+    def test_email_maxsize(self):
+        '''Should truncate the e-mail output if it's too big'''
+        self.watch('email_success = on\nemail_maxsize = -1', 'out', 'a' * 4097)
+        self.assertEquals('  ' + 'a' * 4097, self.send_text[8])
+        self.assertEquals('', self.send_text[9])
+        self.assertEquals('[EOF]', self.send_text[10])
+
+        self.watch('email_success = on\nemail_maxsize = 3', 'out', 'aa')
+        self.assertEquals('  aa', self.send_text[8])
+        self.assertEquals('', self.send_text[9])
+        self.assertEquals('[EOF]', self.send_text[10])
+        
+        self.watch('email_success = on\nemail_maxsize = 1', 'out', 'aaaaa')
+        self.assertEquals('  a', self.send_text[8])
+        self.assertEquals('[Output truncated]', self.send_text[9])
     
     def test_exit_codes(self):
         '''Should send a mail if the exit code doesn't match'''
-        self.conf('exit_codes = 1, 2')
-        self.watch('exit', '1')
+        self.watch('exit_codes = 1, 2', 'exit', '1')
         self.assertFalse(self.send)
         
-        self.conf('exit_codes = 1, 2')
-        self.watch('exit', '2')
+        self.watch('exit_codes = 1, 2', 'exit', '2')
         self.assertFalse(self.send)
 
-        self.conf('exit_codes = 1, 2')
-        self.watch('exit', '3')
+        self.watch('exit_codes = 1, 2', 'exit', '3')
         self.assertEquals('\t* Exit code (3) was not a valid exit code', 
                            self.send_text[8])
 
@@ -609,9 +603,7 @@ class TestWatch(TestBase):
 #blacklist output
 #whitelist output
 #email_maxsize
-#email_success
 #logfile
-# TAG HANDLING
-                                                                                #
+
 if __name__ == '__main__':
     unittest.main()

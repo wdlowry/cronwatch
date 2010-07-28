@@ -296,8 +296,10 @@ def watch(args, config = None, tag = None):
 
     # Go through the output file and prepare a new one for mailing out
     outline = None
+    lines = 0
     for l in oh:
         outline = '  %s' % l
+        lines += 1
 
     #    # Check for required lines
     #    found = line_search(l, config[section]['required'])
@@ -370,7 +372,15 @@ def watch(args, config = None, tag = None):
         text += 'No output.\n'
     else:
         text += 'Output:\n'
-        text += outfile.read()
+        if config[section]['email_maxsize'] != -1:
+            text += outfile.read(config[section]['email_maxsize'] + lines * 2)
+            if len(outfile.read(1)) == 0:
+               text += '\n[EOF]'
+            else:
+               text += '\n[Output truncated]'
+        else:
+            text += outfile.read()
+            text += '\n[EOF]'
 
     send_mail(sendmail, subject, text, to_addr, from_addr)
 
