@@ -24,7 +24,6 @@ import os
 import re
 from tempfile import NamedTemporaryFile, TemporaryFile, mkdtemp, mkstemp
 from StringIO import StringIO
-from shutil import rmtree
 from test_base import *
 from validate import VdtTypeError, VdtValueError
 from configobj import get_extra_values
@@ -306,9 +305,7 @@ class TestCallSendmail(TestBase):
     '''Test the call_sendmail() function'''
     def setUp(self):
         self.tempdir = mkdtemp()
-
-    def tearDown(self):
-        rmtree(self.tempdir)
+        self.register_cleanup(self.tempdir)
 
     def test_simple(self):
         '''Should run sendmail and pass the file in as input'''
@@ -408,6 +405,7 @@ class TestWatch(TestBase):
     '''Test the watch() function'''
     def setUp(self):
         self.time = 0
+    
         self.old_config = cronwatch.CONFIGFILE
         cronwatch.CONFIGFILE = 'this_is_not_a_file.forsure'
 
@@ -634,6 +632,20 @@ class TestWatch(TestBase):
         self.assertEquals('[EOF]', o[11])
         self.assertEquals('', o[12])
         self.assertEquals('', o[13])
+
+    def test_logfile_name(self):
+        '''Should format the name of the logfile correctly'''
+        d = mkdtemp()
+        self.register_cleanup(d)
+
+        logfile = os.path.join(d, '%TAG%_%Y')
+        self.watch('logfile = %s\nemail_maxsize = 1' % logfile, 
+                   'out', 'line1', 'line2')
+
+        logfile = os.path.join(d, datetime.now().strftime('job_%Y'))
+        o = open(logfile).read().split('\n')
+        self.assertEquals('  line1', o[8])
+
 
 if __name__ == '__main__':
     unittest.main()
