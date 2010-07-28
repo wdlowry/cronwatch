@@ -283,14 +283,14 @@ def watch(args, config = None, tag = None):
     if exit not in config[section]['exit_codes']:
         errors.append('Exit code (%i) was not a valid exit code' % exit)
 
-    ## Create the flags/vars for keeping track of what we've found
-    #required = {}
-    #for r in config[section]['required']: required[r.pattern] = False
-    #
-    #blacklist = {}
-    #for r in config[section]['blacklist']: blacklist[r.pattern] = False
+    # Create the flags/vars for keeping track of what we've found
+    required = {}
+    for r in config[section]['required']: required[r.pattern] = False
+    
+    blacklist = {}
+    for r in config[section]['blacklist']: blacklist[r.pattern] = False
 
-    #whitelist = True
+    whitelist = True
 
     outfile = TemporaryFile()
 
@@ -301,25 +301,25 @@ def watch(args, config = None, tag = None):
         outline = '  %s' % l
         lines += 1
 
-    #    # Check for required lines
-    #    found = line_search(l, config[section]['required'])
-    #    if found[0]:
-    #        for p in found[1]:
-    #            required[p] = True
+        # Check for required lines
+        found = line_search(l, config[section]['required'])
+        if found[0]:
+            for p in found[1]:
+                required[p] = True
 
-    #    # Check for whitelist lines
-    #    if config[section]['whitelist'] != None:
-    #        found = line_search(l, config[section]['whitelist'])
-    #        if not found[0]:
-    #            whitelist = False
-    #            outline = '* %s' % l
+        # Check for whitelist lines
+        if config[section]['whitelist'] != None:
+            found = line_search(l, config[section]['whitelist'])
+            if not found[0]:
+                whitelist = False
+                outline = '* %s' % l
 
-    #    # Check for blacklist lines
-    #    found = line_search(l, config[section]['blacklist'])
-    #    if found[0]:
-    #        for p in found[1]:
-    #            blacklist[p] = True
-    #        outline = '! %s' % l
+        # Check for blacklist lines
+        found = line_search(l, config[section]['blacklist'])
+        if found[0]:
+            for p in found[1]:
+                blacklist[p] = True
+            outline = '! %s' % l
 
         outfile.write(outline)
 
@@ -328,21 +328,23 @@ def watch(args, config = None, tag = None):
 
     #oh.seek(0)
 
-    ## Check to make sure all the required regexes got hit
-    #for r in sorted(required):
-    #    if not required[r]:
-    #        errors += ('    * Did not find required output (%s)\n' % r)
+    # Check to make sure all the required regexes got hit
+    for r in sorted(required):
+        if not required[r]:
+            errors.append('Required output missing (%s)' % r)
 
-    ## Check to see if anything didn't match the regex whitelist
-    #if not whitelist:
-    #    errors += ('    * Found output not matched by whitelist')
+    # Check to see if anything didn't match the regex whitelist
+    if not whitelist:
+        errors.append('Output not matched by whitelist ' + 
+                      '(denoted by "*" in output)')
 
-    ## Check to see if any of the blacklist regexes got hit
-    #for r in sorted(blacklist):
-    #    if blacklist[r]:
-    #        errors += ('    * Found blacklist output (%s)\n' % r)
+    # Check to see if any of the blacklist regexes got hit
+    for r in sorted(blacklist):
+        if blacklist[r]:
+            errors.append('Output matched by blacklist (%s) ' % r +
+                          '(denoted by "!" in output)')
 
-    ## Bail out if we don't have any errors
+    # Bail out if we don't have any errors
     if not errors and not config[section]['email_success']:
         return
 
@@ -352,8 +354,11 @@ def watch(args, config = None, tag = None):
     from_addr = config[section]['email_from']
     sendmail = config[section]['email_sendmail']
 
-    text = 'The following command line executed successfully:\n'
-    #text = 'The following command line executed with an error:\n'
+    if errors:
+        text = 'The following command line executed with errors:\n'
+    else:
+        text = 'The following command line executed successfully:\n'
+
     text += '\t%s\n' % ' '.join(args)
     text += '\n'
 
