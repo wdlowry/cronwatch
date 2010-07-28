@@ -397,7 +397,7 @@ def watch(args, config = None, tag = None):
     if errors or config[section]['email_success']:
         send_mail(sendmail, subject, text, to_addr, from_addr)
 
-###############################################################################
+##############################################################################
 # Main function
 ###############################################################################
 def main(argv):
@@ -419,6 +419,9 @@ def main(argv):
     # Should specify at least one command line argument
     if len(args) == 1:
         raise Error('missing command line argument: executable')
+
+    # Remove $0
+    args.pop(0)
 
     watch(args, config = options.config, tag = options.tag)
 
