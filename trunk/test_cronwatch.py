@@ -511,11 +511,11 @@ class TestWatch(TestBase):
         self.watch('email_success = on', 'quiet', 'arg')
         self.assertEquals('The following command line executed successfully:',
                           self.send_text[0])
-        self.assertEquals('\t' + self.cmd_line, self.send_text[1])
+        self.assertEquals(self.cmd_line, self.send_text[1])
         self.assertEquals('', self.send_text[2])
-        self.assertEquals('Started execution at:\ttime0', self.send_text[3])
-        self.assertEquals('Finished execution at:\ttime1', self.send_text[4])
-        self.assertEquals('Exit code:\t\t0', self.send_text[5])
+        self.assertEquals('Started execution at:  time0', self.send_text[3])
+        self.assertEquals('Finished execution at: time1', self.send_text[4])
+        self.assertEquals('Exit code: 0', self.send_text[5])
         self.assertEquals('', self.send_text[6])
         self.assertEquals('Output:', self.send_text[7])
         self.assertEquals('[EOF]', self.send_text[8])
@@ -562,7 +562,7 @@ class TestWatch(TestBase):
         self.assertFalse(self.send)
 
         self.watch('exit_codes = 1, 2', 'exit', '3')
-        self.assertEquals('\t* Exit code (3) was not a valid exit code', 
+        self.assertEquals('  * Exit code (3) was not a valid exit code', 
                            self.send_text[8])
 
     def test_required(self):
@@ -571,9 +571,9 @@ class TestWatch(TestBase):
         self.assertFalse(self.send)
 
         self.watch('required = req, more', 'out', 'line1', 'line2', 'line3')
-        self.assertEquals('\t* Required output missing (more)', 
+        self.assertEquals('  * Required output missing (more)', 
                           self.send_text[8])
-        self.assertEquals('\t* Required output missing (req)', 
+        self.assertEquals('  * Required output missing (req)', 
                           self.send_text[9])
     
     def test_whitelist(self):
@@ -584,7 +584,7 @@ class TestWatch(TestBase):
 
         self.watch('whitelist = white, bright',
                    'out', 'whitelight', 'black', 'whitebright')
-        self.assertEquals('\t* Output not matched by whitelist ' +
+        self.assertEquals('  * Output not matched by whitelist ' +
                           '(denoted by "*" in output)', self.send_text[8])
         self.assertEquals('  whitelight', self.send_text[12])
         self.assertEquals('* black', self.send_text[13])
@@ -597,10 +597,10 @@ class TestWatch(TestBase):
         self.assertFalse(self.send)
 
         self.watch('blacklist = black, dark', 'out', 'black', 'dark', 'line3')
-        self.assertEquals('\t* Output matched by blacklist (black) ' +
+        self.assertEquals('  * Output matched by blacklist (black) ' +
                           '(denoted by "!" in output)',
                           self.send_text[8])
-        self.assertEquals('\t* Output matched by blacklist (dark) ' +
+        self.assertEquals('  * Output matched by blacklist (dark) ' +
                           '(denoted by "!" in output)', 
                           self.send_text[9])
         self.assertEquals('! black', self.send_text[13])
@@ -620,11 +620,11 @@ class TestWatch(TestBase):
         self.assertEquals('line1', o[0])
         self.assertEquals('The following command line executed successfully:',
                           o[1])
-        self.assertEquals('\t' + self.cmd_line, o[2])
+        self.assertEquals(self.cmd_line, o[2])
         self.assertEquals('', o[3])
-        self.assertEquals('Started execution at:\ttime0', o[4])
-        self.assertEquals('Finished execution at:\ttime1', o[5])
-        self.assertEquals('Exit code:\t\t0', o[6])
+        self.assertEquals('Started execution at:  time0', o[4])
+        self.assertEquals('Finished execution at: time1', o[5])
+        self.assertEquals('Exit code: 0', o[6])
         self.assertEquals('', o[7])
         self.assertEquals('Output:', o[8])
         self.assertEquals('  line1', o[9])

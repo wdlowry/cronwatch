@@ -261,12 +261,7 @@ def watch(args, config = None, tag = None):
     
     # Read the configuration
     config = read_config(config)
-
-    # Run the actual program
-    start_time = get_now()
-    (oh, exit) = run(args)
-    end_time = get_now()
-
+    
     # Determine the tag automatically
     if tag is None:
         tag = os.path.basename(args[0])
@@ -276,6 +271,18 @@ def watch(args, config = None, tag = None):
         section = '_default_'
     else:
         section = tag
+
+    
+    # Open the configuration file
+    if config[section]['logfile']:
+        fn = datetime.now().strftime(
+                config[section]['logfile'].replace('%TAG%', tag))
+        logfile = open(fn, 'a')
+
+    # Run the actual program
+    start_time = get_now()
+    (oh, exit) = run(args)
+    end_time = get_now()
 
     errors = []
 
@@ -353,18 +360,18 @@ def watch(args, config = None, tag = None):
     else:
         text = 'The following command line executed successfully:\n'
 
-    text += '\t%s\n' % ' '.join(args)
+    text += '%s\n' % ' '.join(args)
     text += '\n'
 
-    text += 'Started execution at:\t%s\n' % start_time
-    text += 'Finished execution at:\t%s\n' % end_time
-    text += 'Exit code:\t\t%i\n' % exit
+    text += 'Started execution at:  %s\n' % start_time
+    text += 'Finished execution at: %s\n' % end_time
+    text += 'Exit code: %i\n' % exit
     text += '\n'
 
     if errors:
         text += 'Errors:\n'
         for e in errors:
-            text += '\t* %s\n' % e
+            text += '  * %s\n' % e
         text += '\n\n'
 
     text += 'Output:\n'
@@ -374,9 +381,6 @@ def watch(args, config = None, tag = None):
 
     # Start the log file
     if config[section]['logfile']:
-        fn = datetime.now().strftime(
-                config[section]['logfile'].replace('%TAG%', tag))
-        logfile = open(fn, 'a')
         logfile.write(text)
     
         for l in outfile:
