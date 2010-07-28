@@ -1,7 +1,7 @@
 # Makefile for cronwatch
 # $Id$
 
-CHANGEFILES=cronwatch.py test_cronwatch.py
+CHANGEFILES=*.py *.sh
 
 all:
 
