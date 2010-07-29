@@ -9,7 +9,7 @@ clean:
 	rm -rf work *.pyc
 
 test:
-	python test_cronwatch.py
+	nosetests
 
 testloop:
 	unset MD5CMD ; \
