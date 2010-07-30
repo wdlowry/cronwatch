@@ -446,7 +446,11 @@ class TestWatch(TestBase):
         self.cmd_line = ['./test_script.sh', cmd, tf.name] + list(args)
         tag = 'job'
         if kwargs.has_key('tag'): tag = kwargs['tag']
-        cronwatch.watch(self.cmd_line, config = cf.name, tag = tag)
+        
+        force = False
+        if kwargs.has_key('force_blacklist'): force = kwargs['force_blacklist']
+        cronwatch.watch(self.cmd_line, config = cf.name, tag = tag, 
+                        force_blacklist = force)
         self.cmd_line = ' '.join(self.cmd_line)
 
         return tf.read()
@@ -606,6 +610,16 @@ class TestWatch(TestBase):
         self.assertEquals('! black', self.send_text[13])
         self.assertEquals('! dark', self.send_text[14])
         self.assertEquals('  line3', self.send_text[15])
+
+    def test_default_blacklist(self):
+        '''Should create a blacklist if none of the regex options are
+           specified'''
+        self.watch('', 'out', 'line1', 'line2', force_blacklist = True)
+        self.assertEquals('  * Output matched by blacklist (.*) ' + 
+                          '(denoted by "!" in output)',
+                          self.send_text[8])
+        self.assertEquals('! line1', self.send_text[12])
+        self.assertEquals('! line2', self.send_text[13])
 
     def test_logfile(self):
         '''Should open and write to a log file'''

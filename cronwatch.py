@@ -256,7 +256,7 @@ def get_now():
 ###############################################################################
 # Watch function
 ###############################################################################
-def watch(args, config = None, tag = None):
+def watch(args, config = None, tag = None, force_blacklist = True):
     '''Watch a job and capture output'''
     
     # Read the configuration
@@ -289,6 +289,11 @@ def watch(args, config = None, tag = None):
     # Check for correct error codes
     if exit not in config[section]['exit_codes']:
         errors.append('Exit code (%i) was not a valid exit code' % exit)
+
+    if not (config[section]['required'] or
+        config[section]['whitelist'] or
+        config[section]['blacklist']) and force_blacklist:
+        config[section]['blacklist'] = [re.compile('.*')]
 
     # Create the flags/vars for keeping track of what we've found
     required = {}
