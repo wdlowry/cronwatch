@@ -3,5 +3,8 @@
   * Send HTML-formatted e-mails
   * Send to multiple accounts
 
+= Possible =
+  * Filter output for the e-mail/log using regular expressions
+
 = Long Term =
   * Collect output to a central point and report on it there
