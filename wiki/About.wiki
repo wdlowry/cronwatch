@@ -16,3 +16,6 @@ In its default configuration, it acts much like standard cron: it considers any 
   * Adjust the recipient and sender e-mail addresses
   * Limit the size of the e-mail to avoid extremely large e-mails for jobs with lots of output 
   * Write the output to a log file
+
+= Getting Started =
+See the [Documentation]
