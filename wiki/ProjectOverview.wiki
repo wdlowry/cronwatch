@@ -1,9 +1,0 @@
-#summary Basic overview of the project
-#labels Phase-Requirements
-
-=Need=
-At my company we have multiple departments that write jobs and schedule them on multiple servers running a variety of UNIX OSes. Every group has its own way of capturing output, but many of the jobs just print to stdout. This output then gets sent the the owner of the cronjob, usually root. The end result is that our common root mail account was getting flooded with a lot of useless information and nobody really took the time to regularly read it.
-
-We needed a system that would grab the output from the cronjobs, process it, and send important information on to the responsible groups. The system also should handle central reporting.
-
-Some scheduling packages handle all this kind of stuff. However, they tend to be expensive and cron really does the trick when it comes to scheduling. It just doesn't handle reporting very well.
