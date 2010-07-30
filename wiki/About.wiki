@@ -1,0 +1,12 @@
+#summary About cronwatch
+
+= Summary =
+cronwatch is a Python script that executes programs and captures their output and exit codes and handles that output as configured.
+
+= Need =
+The traditional UNIX crond handles scheduling and executing jobs very well. However, it handles abnormal program runs, output to stderr for example, very poorly. cronwatch seeks to fill that gap by capturing and acting upon the output and exit codes of jobs executed by cron.
+
+In its default configuration, it acts much like standard cron: it considers any output or non-zero exit code to be an error and e-mails the owner of the crontab. The user can 
+
+= Features =
+  * 
