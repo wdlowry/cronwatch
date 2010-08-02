@@ -1,10 +1,6 @@
 #summary Configuration options
 #labels Phase-Deploy
 
-= Configuration File Location =
-By default, cronwatch will check if /etc/cronwatch.conf exists, and if it does, load the configuration from it. If this file does not exist, then cronwatch will behave essentially as if it were cron (see the defaults below).
-
-If a configuration file is specified on the command line (-c option), then cronwatch will try to open that file and fail if it does not exist.
 
 = Configuration File Structure =
 The configuration file is a INI-style configuration file. Each section specifies the settings for a cronwatch job or jobs.
