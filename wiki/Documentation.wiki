@@ -18,5 +18,17 @@ Some errors are severe enough to warrant an immediate error:
 ERROR: could not run /bin/truely: [Errno 2] No such file or directory
 }}}
 
+Typically, cronwatch will be executed from a crontab. You'll need to make sure that you either specify the correct PATH for cronwatch or that you use the full path name for cronwatch.
+{{{
+PATH=/usr/local/bin:/usr/bin:/bin
+30 14 * * * cronwatch /bin/echo time for coffee
+}}}
+
+You can also specify a configuration file and tags from the command line. These concepts will be explained later.
+{{{
+30 14 * * * cronwatch -c /etc/cronwatch/coffee.conf -t coffee /bin/echo time for coffee
+}}}
+
+= Tags =
 
 = Configuration =
