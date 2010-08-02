@@ -1,6 +1,10 @@
 #summary Documentation Index
 #labels Phase-Support,Featured
 
-= Introduction =
+= Overview =
 
 Add your content here.
+
+= Sample Usage =
+
+= Configuration =
