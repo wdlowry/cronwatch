@@ -3,8 +3,20 @@
 
 = Overview =
 
-Add your content here.
+In its default configuration, cronwatch simply executes the specified command and handles any abnormal exit code or output by mailing it to the current user. The configuration options allow the user to control where that output is sent and what is considered "abnormal."
 
 = Sample Usage =
+
+cronwatch can be run from the command line to test that everything is set up correctly:
+{{{
+# cronwatch /bin/true
+}}}
+
+Some errors are severe enough to warrant an immediate error:
+{{{
+# cronwatch /bin/truely
+ERROR: could not run /bin/truely: [Errno 2] No such file or directory
+}}}
+
 
 = Configuration =
