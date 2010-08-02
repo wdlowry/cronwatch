@@ -1,5 +1,5 @@
 #summary Documentation Index
-#labels Phase-Support
+#labels Phase-Support,Featured
 
 = Introduction =
 
