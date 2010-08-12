@@ -1,13 +1,15 @@
 from paver.easy import *
 from paver.setuputils import setup
 
-#copy_file('cronwatch.py', 'cronwatch')
 setup(name = 'cronwatch',
       version = '1.0',
       url = 'http://code.google.com/p/cronwatch/',
       author = 'David Lowry',
       author_email = 'wdlowry@gmail.com',
-      scripts = ['cronwatch'])
+      scripts = ['cronwatch'],
+      description = 'A script that monitors cron job output',
+      license = 'GPL2',
+      test_suite = 'test_cronwatch')
 
 
 @task
