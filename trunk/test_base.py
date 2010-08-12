@@ -50,11 +50,21 @@ class TestBase(unittest.TestCase):
         self._capture = False
         self.__cleanup = []
 
-    def __del__(self):
+    def tearDownWrapper(self):
         self.cleanup()
+        self.tearDownOld()
+
+    def tearDownDummy(self):
+        pass
 
     def register_cleanup(self, path):
         self.__cleanup.append(path)
+        if not 'tearDownOld' in dir(self):
+            if 'tearDown' in dir(self):
+                self.tearDownOld = self.tearDown
+            else:
+                self.tearDownOld = self.tearDownDummy
+            self.tearDown = self.tearDownWrapper
 
     def cleanup(self):
         for path in self.__cleanup:
