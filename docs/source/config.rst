@@ -58,18 +58,41 @@ Options
 cronwatch offers many different configuration options that allow the user to
 modify what it reports and where it sends those reports.
 
+cronwatch supports these configuration options:
+
++-----------------------+-----------------------------------------------------+
+| Name                  | Default Value                                       |
++=======================+=====================================================+
+| :ref:`required`       | Not set                                             |
++-----------------------+-----------------------------------------------------+
+| :ref:`blacklist`      | ``.*`` (See :ref:`blacklist` for more information)  |
++-----------------------+-----------------------------------------------------+
+| :ref:`whitelist`      | Not set                                             |
++-----------------------+-----------------------------------------------------+
+| :ref:`exit_codes`     | ``0``                                               |
++-----------------------+-----------------------------------------------------+
+| :ref:`email_to`       | The username of the current user                    |
++-----------------------+-----------------------------------------------------+
+| :ref:`email_from`     | The username and hostname of the current user in    |
+|                       | the ``username@hostname.domain.tld`` format         |
++-----------------------+-----------------------------------------------------+
+| :ref:`email_maxsize`  | ``102400``                                          |
++-----------------------+-----------------------------------------------------+
+| :ref:`email_success`  | ``False``                                           |
++-----------------------+-----------------------------------------------------+
+| :ref:`email_sendmail` | ``/usr/lib/sendmail``                               |
++-----------------------+-----------------------------------------------------+
+| :ref:`logfile`        | Not set                                             |
++-----------------------+-----------------------------------------------------+
 
 
-
-= Configuration Options =
-cronwatch understands these configuration options.
-
-== required ==
-|| *Name:* || `required` ||
+required
+--------
 || *Default Value:* || None ||
 || *Description:* || A regular expression or a list of regular expressions that must be found in the output for the job to be considered successful. ||
 
-== blacklist ===
+blacklist
+---------
 || *Name:* || `blacklist` ||
 || *Default Value:* || `.*` ||
 || *Description:* || A regular expression or a list of regular expressions that will result in an error if found in the output. ||
