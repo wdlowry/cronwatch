@@ -186,7 +186,7 @@ class TestReadConfig(TestBase):
             self.assertEquals([0], c[s]['exit_codes'])
             self.assertEquals(None, c[s]['email_to'])
             self.assertEquals(None, c[s]['email_from'])
-            self.assertEquals(4096, c[s]['email_maxsize'])
+            self.assertEquals(102400, c[s]['email_maxsize'])
             self.assertEquals(False, c[s]['email_success'])
             self.assertEquals('/usr/lib/sendmail', c[s]['email_sendmail'])
             self.assertEquals(None, c[s]['logfile'])
