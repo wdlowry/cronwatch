@@ -161,7 +161,7 @@ def read_config(config_file = None):
         exit_codes = force_int_list(default = list(0))
         email_to = string(default = None)
         email_from = string(default = None)
-        email_maxsize = integer(default = 4096, min = -1)
+        email_maxsize = integer(default = 102400, min = -1)
         email_success = boolean(default = False)
         email_sendmail = string(default = /usr/lib/sendmail)
         logfile = string(default = None)
