@@ -1,15 +1,20 @@
-.. cronwatch documentation master file, created by
-   sphinx-quickstart on Thu Aug 12 10:29:11 2010.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+**********************************
+cronwatch: Cronjob output handling
+**********************************
 
-Welcome to cronwatch's documentation!
-=====================================
+About
+=====
+cronwatch is a Python script that executes programs and captures their output
+and exit codes and handles that output as configured. 
 
-Contents:
-
+Contents
+========
 .. toctree::
    :maxdepth: 2
+    
+   overview
+   usage
+   config
 
 Indices and tables
 ==================
