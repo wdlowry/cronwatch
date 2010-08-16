@@ -85,49 +85,102 @@ cronwatch supports these configuration options:
 | :ref:`logfile`        | Not set                                             |
 +-----------------------+-----------------------------------------------------+
 
+.. _required:
 
 required
 --------
-|| *Default Value:* || None ||
-|| *Description:* || A regular expression or a list of regular expressions that must be found in the output for the job to be considered successful. ||
+This setting specifies a regular expression or a list of regular expressions
+that must be matched in the output for the job to be considered successful. By
+default it is not set.
+
+Examples::
+
+    required = success
+    required = '''success''', '''read [0-9] bytes of data''', '''wrote data'''
+
+.. _blacklist:
 
 blacklist
 ---------
-|| *Name:* || `blacklist` ||
-|| *Default Value:* || `.*` ||
-|| *Description:* || A regular expression or a list of regular expressions that will result in an error if found in the output. ||
+This setting is a regular expression or a list of regular expressions that
+must not match lines in the output. If they are found, cronwatch will 
+flag an error.
 
-== whitelist ==
-|| *Name:* || `whitelist` ||
-|| *Default Value:* || None ||
-|| *Description:* || A regular expression or a list of regular expressions that if are not matched will result in an error. ||
+By default, if ``required`` and ``whitelist`` are *not* set, then blacklist is 
+``.*``. Otherwise, ``blacklist`` is not set unless it is specified in the 
+configuration file.
 
-If whitelist is specified, then the every line of output is matches against the regular expression(s). If it does not match, then cronwatch will flag the output as an error.
+Examples::
 
-If both whitelist and blacklist are specified, then the output is first tested against whitelist. If it passes, it is then tested against blacklist. For example, if whitelist is `success` and blacklist is `not` then `not successful` will match both and thus be marked as an error.
+    blacklist = error
+    blacklist = bad error, worse error, 'really, really bad error'
 
-== exit_codes ==
-|| *Name:* || `exit_codes` ||
-|| *Default Value:* || `0` ||
-|| *Description:* || A list of acceptable error code. Other error codes will result in an error. ||
+.. _whitelist:
 
-== email_to ==
-|| *Name:* || `email_to` ||
-|| *Default Value:* || None ||
-|| *Description:* || An e-mail address to which to send output. This address can be a local account, for example, `root`, the default. If this setting is not specified (the default), then it will be generate in the format: <username> ||
+whitelist
+---------
+This setting is a regular expression or a list of regular expressions that are
+allowed in the output. If a line of output does not match one of the
+``whitelist`` regular expressions, then the job will complete unsuccessfully.
+By default it is not set.
 
-== email_from ==
-|| *Name:* || `email_from` ||
-|| *Default Value:* || None ||
-|| *Description:* || An e-mail address from which to send output. If this setting is not specified (the default), then it will be generated in the format: User Name <username@hostname> ||
+If both ``whitelist`` and ``blacklist`` are specified, then the output is first
+tested against whitelist. If it passes, it is then tested against blacklist.
+For example, if whitelist is ``success`` and blacklist is ``not`` then ``not
+successful`` will match both and thus be marked as an error.
 
+Examples::
+
+    whitelist = success
+    whitelist = success, read data, 'read much, much data'
+
+.. _exit_codes:
+
+exit_codes
+----------
+This settings is a list of integers that tells cronwatch which exit codes are
+acceptable. Other codes will result in an error. The default is `0`.
+
+Example::
+
+    exit_code = 0, 1
+
+.. _email_to:
+
+email_to
+--------
+This setting specifies where to e-mail output from the job. The default setting
+is to send mail to the current user's username.
+
+Examples::
+
+    email_to = root
+    email_to = user@example.com
+
+.. _email_from:
+
+email_from
+----------
+This setting sets the "From" address for the e-mail. By default, this will be
+the username of the current user.
+
+Examples::
+    
+    email_from = root
+    email_from = user@example.com
+
+.. _email_maxsize
+
+email_maxsize
+-------------
+
+*Caution*: If you don't know the maximum size of the output, it would be better to set a maximum size just in case the output gets really large.
 
 == email_maxsize ==
 || *Name:* || `email_maxsize` ||
 || *Default Value:* || `4096` ||
 || *Description:* || The maximum size of output to send in an e-mail. If everything should be sent, then `email_maxlines` should be set to -1 ||
 
-*Caution*: If you don't know the maximum size of the output, it would be better to set a maximum size just in case the output gets really large.
 
 == email_success ==
 || *Name:* || `email_success` ||
