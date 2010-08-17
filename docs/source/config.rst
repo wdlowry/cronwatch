@@ -35,7 +35,8 @@ the tag is ``generic``.
 
 Sections
 ========
-conwatch allows you to specify multiple configurations in the same configurationfile.  Consider the following configuration file::
+conwatch allows you to specify multiple configurations in the same
+configuration file.  Consider the following configuration file::
 
     [_default_]
     blacklist = ERROR
@@ -169,37 +170,60 @@ Examples::
     email_from = root
     email_from = user@example.com
 
-.. _email_maxsize
+.. _email_maxsize:
 
 email_maxsize
 -------------
+This setting limits the size of e-mails cronwatch sends. The default value is
+``102400``. If the entire output should be sent, then ``email_maxlines`` should
+be set to ``-1``.
 
 *Caution*: If you don't know the maximum size of the output, it would be better to set a maximum size just in case the output gets really large.
 
-== email_maxsize ==
-|| *Name:* || `email_maxsize` ||
-|| *Default Value:* || `4096` ||
-|| *Description:* || The maximum size of output to send in an e-mail. If everything should be sent, then `email_maxlines` should be set to -1 ||
+Examples::
+    email_maxsize = -1
+    email_maxsize = 1024
 
+.. _email_success:
 
-== email_success ==
-|| *Name:* || `email_success` ||
-|| *Default Value:* || `false` ||
-|| *Description:* || Determines whether an e-mail should be sent if the job was successful.||
+email_success
+-------------
+In the default configuration, cronwatch only sends e-mail when there is an
+error (e.g. the blacklist matches a line of output). This settings tells
+cronwatch to always send e-mail, even if the job was successful.
 
-== email_sendmail ==
-|| *Name:* || `email_sendmail` ||
-|| *Default Value:* || `/usr/lib/sendmail` ||
-|| *Description:* || The location and parameters for sendmail.||
+Example::
+    
+    email_success = on
 
-== logfile ==
-|| *Name:* || `logfile` ||
-|| *Default Value:* || None ||
-|| *Description:* || The file name for the log file. ||
+.. _email_sendmail:
 
-When determining the log file name, cronwatch first replaces `%TAG%` with the current tag and then uses Python's [http://docs.python.org/library/datetime.html#strftime-strptime-behavior strftime] to add date and time information. For example, `/var/log/cronwatch-%TAG%-%Y%m%d%h%M.log` would be evaluated to something like `/var/log/cronwatch-myjob-201001010952.log`.
+email_sendmail
+--------------
+This settings tells cronwatch where to find the sendmail program and what
+parameters to use when calling sendmail. It defaults to ``/usr/lib/sendmail``. 
 
-= Example Configuration File =
+Examples::
+    sendmail = /usr/local/bin/sendmail
+    sendmail = /usr/lib/sendmail -t
+
+.. _logfile:
+
+logfile
+-------
+This setting makes cronwatch use a log file for the job's output. By default,
+it is not set and no logfile is written.
+
+When determining the log file name, cronwatch uses Python's `strftime function
+<http://docs.python.org/library/datetime.html#strftime-strptime-behavior>`_ to
+add date and time information.
+
+Examples::
+    logfile = /var/log/cronwatch/job.log
+    logfile = /var/log/cronwatch/job-%Y%m%d%h%M.log
+
+Example Configuration File
+==========================
 Here is an example configuration file. See the configuration options below for more information.
 {{{
 # These defaults are applied to the other sections
