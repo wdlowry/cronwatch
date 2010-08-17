@@ -275,8 +275,7 @@ def watch(args, config = None, tag = None, force_blacklist = True):
     
     # Open the configuration file
     if config[section]['logfile']:
-        fn = datetime.now().strftime(
-                config[section]['logfile'].replace('%TAG%', tag))
+        fn = datetime.now().strftime(config[section]['logfile'])
         logfile = open(fn, 'a')
 
     # Run the actual program

@@ -652,7 +652,7 @@ class TestWatch(TestBase):
         d = mkdtemp()
         self.register_cleanup(d)
 
-        logfile = os.path.join(d, '%TAG%_%Y')
+        logfile = os.path.join(d, 'job_%Y')
         self.watch('logfile = %s\nemail_maxsize = 1' % logfile, 
                    'out', 'line1', 'line2')
 
