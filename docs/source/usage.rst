@@ -18,8 +18,16 @@ The easiest way to install cronwatch is easy_install::
     easy_install cronwatch
 
 You can also download it and install it manually.
+
+
   #. Download `ConfigObj <http://pypi.python.org/pypi/configobj/>`_ and install 
-     it
+     it::
+
+         wget http://pypi.python.org/packages/source/c/configobj/configobj-4.7.2.tar.gz
+         tar xzf configobj-4.7.2.tar.gz
+         cd configobj-4.7.2
+         python setup.py install
+
   #. Download `cronwatch <http://code.google.com/p/cronwatch/downloads/list>`_
   #. Unpack it::
 
