@@ -1,22 +1,35 @@
 from paver.easy import *
 from paver.setuputils import setup, install_distutils_tasks
-    
+
+VERSION = '1.0'
+
 setup(
     name = 'cronwatch',
-    version = '1.0',
+    version = VERSION,
     description = 'A script that monitors cron job output',
     author = 'David Lowry',
     author_email = 'wdlowry@gmail.com',
     url = 'http://code.google.com/p/cronwatch/',
-    license = 'GPL2',
+    download_url = 'http://cronwatch.googlecode.com/files/%s.tar.gz' % VERSION,
+    classifiers = [ 'Development Status :: 5 - Production/Stable',
+                    'Environment :: Console',
+                    'Intended Audience :: System Administrators',
+                    'License :: OSI Approved :: GNU General Public License ' +
+                        '(GPL)',
+                    'Operating System :: POSIX',
+                    'Topic :: System :: Logging',
+                    'Topic :: System :: Systems Administration',
+                  ],
+    platforms = ['Any'],
     scripts = ['cronwatch'],
     test_suite = 'nose.collector',
-    install_requires=['configobj']
+    requires=['configobj'],
+    zip_safe=False,
 )
 
 options(
     sphinx=Bunch(
-        docroot = 'docs',
+        docroot = 'docsrc',
         builddir = 'build',
         sourcedir = 'source'
     )
@@ -25,7 +38,11 @@ options(
 @task
 @needs('paver.doctools.html')
 def html():
-    pass
+    '''Build cronwatch's docs and put them in docs/'''
+    builtdocs = path(options.sphinx.docroot) / options.sphinx.builddir / 'html'
+    destdir = path('docs')
+    destdir.rmtree()
+    builtdocs.move(destdir)
 
 @task
 @needs('generate_setup', 'minilib', 'html', 'setuptools.command.sdist')
