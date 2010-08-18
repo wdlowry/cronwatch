@@ -54,6 +54,17 @@ Any other tag would make cronwatch use the ``[_default_]`` section. In the
 event that there is no ``[_default_]`` section and a suitable section cannot be
 found, cronwatch will use the :ref:`defaults <defaults>`.
 
+Regular Expressions
+===================
+cronwatch uses the Python ``re`` module for regular expression matching.
+Python's ``re`` module uses a similar syntax to PCRE. See `the module
+documentation
+<http://docs.python.org/library/re.html#regular-expression-syntax>`_ for more
+details.
+
+One little tidbit: To make a regular expression case insensitive, use the string
+``(?i)`` somewhere in the regular expressions.
+
 Options
 =======
 cronwatch offers many different configuration options that allow the user to
@@ -224,30 +235,30 @@ Examples::
 
 Example Configuration File
 ==========================
-Here is an example configuration file. See the configuration options below for more information.
-{{{
-# These defaults are applied to the other sections
-[defaults]
+Here is an example configuration file. See the configuration options above for
+more information.
 
-# Send an e-mail to root on the local machine when something messes up
-email_to = root
+Example configuration file::
 
-# Truncate the e-mail if it's bigger than 1M
-email_maxsize = 1048576
+    # These defaults are applied when another section doesn't apply
+    [_defaults_]
 
-# The exit code must either be 0 or 10
-exit_codes = 0
-exit_code = 10
+    # Send an e-mail to root on the local machine when something messes up
+    email_to = root
 
-[log_cleanup]
-# Make sure this regular expression is in the output
-required = [0-9]+ log file\(s\) successfully rotated.
+    # Truncate the e-mail if it's bigger than 1M
+    email_maxsize = 1048576
 
-# Both of 
-blacklist = (?i)error
-blacklist = ^Could not open
-logfile = /var/log/%TAG%-%Y%m%d%h%m.log
-}}}
+    # The exit code must either be 0 or 10
+    exit_codes = 0, 10
 
-= Regular Expressions =
-cronwatch uses the Python re module for regular expression matching. Python's re module uses a similar syntax to PCRE. See http://docs.python.org/library/re.html#regular-expression-syntax for more details.
+    [log_cleanup]
+    # Make sure this regular expression is in the output
+    required = [0-9]+ log file\(s\) successfully rotated.
+
+    # Blacklist any line with error (case-insensitive) in it
+    # Also blacklist lines that begin with "Could not ..."
+    blacklist = (?i)error, '^Could not open, try again'
+    
+    logfile = /var/log/log_cleanup-%Y%m%d%h%m.log
+
