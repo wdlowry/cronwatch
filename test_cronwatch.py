@@ -385,15 +385,19 @@ class TestSendMail(TestBase):
         cronwatch.send_mail('sendmail', 'subject', 'text', html = 'html')
         
         lines = self.args[1].split('\n')
+        while lines[0].find('Content-Type') == -1: lines.pop(0)
         self.assertEquals('Content-Type: multipart/alternative',
                           lines[0].split(';')[0])
-        self.assertEquals('', lines[5])
+        lines.pop(0)
+        
+        while lines[0].find('Content-Type') == -1: lines.pop(0)
         self.assertEquals('Content-Type: text/plain; charset="us-ascii"',
-                          lines[7])
-        self.assertEquals('text', lines[11])
+                          lines[0])
+        lines.pop(0)
+
+        while lines[0].find('Content-Type') == -1: lines.pop(0)
         self.assertEquals('Content-Type: text/html; charset="us-ascii"',
-                          lines[13])
-        self.assertEquals('html', lines[17])
+                          lines[0])
 
 class TestGetNow(TestBase):
     def test_get_now(self):
