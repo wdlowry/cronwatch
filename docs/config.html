@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Configuring cronwatch &mdash; cronwatch v1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="cronwatch v1.0 documentation" href="index.html" />
+    <link rel="prev" title="Usage" href="usage.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cronwatch v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="configuring-cronwatch">
+<span id="config"></span><h1>Configuring cronwatch<a class="headerlink" href="#configuring-cronwatch" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="configuration-file-location">
+<h2>Configuration File Location<a class="headerlink" href="#configuration-file-location" title="Permalink to this headline">¶</a></h2>
+<p>By default, cronwatch will check if /etc/cronwatch.conf exists, and if it does,
+use it as the configuration file. If this file does not exist, cronwatch will
+behave essentially as if it were cron (see <a class="reference internal" href="usage.html#defaults"><em>Default Behavior</em></a>). In this scenario,
+it will handle any output or non-zero exit code as an error and send an e-mail
+to the user that called cronwatch.</p>
+<p>If a file is specified on the command line with the <tt class="docutils literal"><span class="pre">-c</span></tt> option, then this
+file is used as the configuration file. If this file doesn&#8217;t exist, cronwatch
+will fail with an error.</p>
+</div>
+<div class="section" id="tags">
+<h2>Tags<a class="headerlink" href="#tags" title="Permalink to this headline">¶</a></h2>
+<p>cronwatch allows you to put mutliple configurations in the same configuration
+file. It determines which configuration section to use using a feature called
+&#8220;tags.&#8221; By default, the tag is determined by the basename of the executable.
+For example, if you are running the following cronwatch command:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cronwatch</span> <span class="o">/</span><span class="n">my</span><span class="o">/</span><span class="n">very</span><span class="o">/</span><span class="n">special</span><span class="o">/</span><span class="n">script</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+<p>then the tag will be <tt class="docutils literal"><span class="pre">script.sh</span></tt>. However, if you supply a tag on the command
+line using the <tt class="docutils literal"><span class="pre">-t</span></tt> option, then that tag argument will override the default
+tag. For example, in this command line:</p>
+<div class="highlight-python"><pre>cronwatch -t generic /my/very/special/script.sh</pre>
+</div>
+<p>the tag is <tt class="docutils literal"><span class="pre">generic</span></tt>.</p>
+</div>
+<div class="section" id="sections">
+<h2>Sections<a class="headerlink" href="#sections" title="Permalink to this headline">¶</a></h2>
+<p>conwatch allows you to specify multiple configurations in the same
+configuration file.  Consider the following configuration file:</p>
+<div class="highlight-python"><pre>[_default_]
+blacklist = ERROR
+
+[myscript]
+blacklist = really bad error</pre>
+</div>
+<p>In this case, the <tt class="docutils literal"><span class="pre">[myscript]</span></tt> section will be used only if the tag is
+<tt class="docutils literal"><span class="pre">myscript</span></tt>, like in these two examples:</p>
+<div class="highlight-python"><pre>cronwatch /usr/local/bin/myscript
+cronwatch -t myscript /my/very/special/script.sh</pre>
+</div>
+<p>Any other tag would make cronwatch use the <tt class="docutils literal"><span class="pre">[_default_]</span></tt> section. In the
+event that there is no <tt class="docutils literal"><span class="pre">[_default_]</span></tt> section and a suitable section cannot be
+found, cronwatch will use the <a class="reference internal" href="usage.html#defaults"><em>defaults</em></a>.</p>
+</div>
+<div class="section" id="regular-expressions">
+<h2>Regular Expressions<a class="headerlink" href="#regular-expressions" title="Permalink to this headline">¶</a></h2>
+<p>cronwatch uses the Python <tt class="docutils literal"><span class="pre">re</span></tt> module for regular expression matching.
+Python&#8217;s <tt class="docutils literal"><span class="pre">re</span></tt> module uses a similar syntax to PCRE. See <a class="reference external" href="http://docs.python.org/library/re.html#regular-expression-syntax">the module
+documentation</a> for more
+details.</p>
+<p>One little tidbit: To make a regular expression case insensitive, use the string
+<tt class="docutils literal"><span class="pre">(?i)</span></tt> somewhere in the regular expressions.</p>
+</div>
+<div class="section" id="options">
+<span id="id1"></span><h2>Options<a class="headerlink" href="#options" title="Permalink to this headline">¶</a></h2>
+<p>cronwatch offers many different configuration options that allow the user to
+modify what it reports and where it sends those reports.</p>
+<p>cronwatch supports these configuration options:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%" />
+<col width="70%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Name</th>
+<th class="head">Default Value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td><a class="reference internal" href="#required"><em>required</em></a></td>
+<td>Not set</td>
+</tr>
+<tr><td><a class="reference internal" href="#blacklist"><em>blacklist</em></a></td>
+<td><tt class="docutils literal"><span class="pre">.*</span></tt> (See <a class="reference internal" href="#blacklist"><em>blacklist</em></a> for more information)</td>
+</tr>
+<tr><td><a class="reference internal" href="#whitelist"><em>whitelist</em></a></td>
+<td>Not set</td>
+</tr>
+<tr><td><a class="reference internal" href="#exit-codes"><em>exit_codes</em></a></td>
+<td><tt class="docutils literal"><span class="pre">0</span></tt></td>
+</tr>
+<tr><td><a class="reference internal" href="#email-to"><em>email_to</em></a></td>
+<td>The username of the current user</td>
+</tr>
+<tr><td><a class="reference internal" href="#email-from"><em>email_from</em></a></td>
+<td>The username and hostname of the current user in
+the <tt class="docutils literal"><span class="pre">username&#64;hostname.domain.tld</span></tt> format</td>
+</tr>
+<tr><td><a class="reference internal" href="#email-maxsize"><em>email_maxsize</em></a></td>
+<td><tt class="docutils literal"><span class="pre">102400</span></tt></td>
+</tr>
+<tr><td><a class="reference internal" href="#email-success"><em>email_success</em></a></td>
+<td><tt class="xref docutils literal"><span class="pre">False</span></tt></td>
+</tr>
+<tr><td><a class="reference internal" href="#email-sendmail"><em>email_sendmail</em></a></td>
+<td><tt class="docutils literal"><span class="pre">/usr/lib/sendmail</span></tt></td>
+</tr>
+<tr><td><a class="reference internal" href="#logfile"><em>logfile</em></a></td>
+<td>Not set</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="required">
+<span id="id2"></span><h3>required<a class="headerlink" href="#required" title="Permalink to this headline">¶</a></h3>
+<p>This setting specifies a regular expression or a list of regular expressions
+that must be matched in the output for the job to be considered successful. By
+default it is not set.</p>
+<p>Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">required</span> <span class="o">=</span> <span class="n">success</span>
+<span class="n">required</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;success&#39;&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;&#39;read [0-9] bytes of data&#39;&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;&#39;wrote data&#39;&#39;&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="blacklist">
+<span id="id3"></span><h3>blacklist<a class="headerlink" href="#blacklist" title="Permalink to this headline">¶</a></h3>
+<p>This setting is a regular expression or a list of regular expressions that
+must not match lines in the output. If they are found, cronwatch will
+flag an error.</p>
+<p>By default, if <tt class="docutils literal"><span class="pre">required</span></tt> and <tt class="docutils literal"><span class="pre">whitelist</span></tt> are <em>not</em> set, then blacklist is
+<tt class="docutils literal"><span class="pre">.*</span></tt>. Otherwise, <tt class="docutils literal"><span class="pre">blacklist</span></tt> is not set unless it is specified in the
+configuration file.</p>
+<p>Examples:</p>
+<div class="highlight-python"><pre>blacklist = error
+blacklist = bad error, worse error, 'really, really bad error'</pre>
+</div>
+</div>
+<div class="section" id="whitelist">
+<span id="id4"></span><h3>whitelist<a class="headerlink" href="#whitelist" title="Permalink to this headline">¶</a></h3>
+<p>This setting is a regular expression or a list of regular expressions that are
+allowed in the output. If a line of output does not match one of the
+<tt class="docutils literal"><span class="pre">whitelist</span></tt> regular expressions, then the job will complete unsuccessfully.
+By default it is not set.</p>
+<p>If both <tt class="docutils literal"><span class="pre">whitelist</span></tt> and <tt class="docutils literal"><span class="pre">blacklist</span></tt> are specified, then the output is first
+tested against whitelist. If it passes, it is then tested against blacklist.
+For example, if whitelist is <tt class="docutils literal"><span class="pre">success</span></tt> and blacklist is <tt class="docutils literal"><span class="pre">not</span></tt> then <tt class="docutils literal"><span class="pre">not</span>
+<span class="pre">successful</span></tt> will match both and thus be marked as an error.</p>
+<p>Examples:</p>
+<div class="highlight-python"><pre>whitelist = success
+whitelist = success, read data, 'read much, much data'</pre>
+</div>
+</div>
+<div class="section" id="exit-codes">
+<span id="id5"></span><h3>exit_codes<a class="headerlink" href="#exit-codes" title="Permalink to this headline">¶</a></h3>
+<p>This settings is a list of integers that tells cronwatch which exit codes are
+acceptable. Other codes will result in an error. The default is <cite>0</cite>.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">exit_code</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="email-to">
+<span id="id6"></span><h3>email_to<a class="headerlink" href="#email-to" title="Permalink to this headline">¶</a></h3>
+<p>This setting specifies where to e-mail output from the job. The default setting
+is to send mail to the current user&#8217;s username.</p>
+<p>Examples:</p>
+<div class="highlight-python"><pre>email_to = root
+email_to = user@example.com</pre>
+</div>
+</div>
+<div class="section" id="email-from">
+<span id="id7"></span><h3>email_from<a class="headerlink" href="#email-from" title="Permalink to this headline">¶</a></h3>
+<p>This setting sets the &#8220;From&#8221; address for the e-mail. By default, this will be
+the username of the current user.</p>
+<p>Examples:</p>
+<div class="highlight-python"><pre>email_from = root
+email_from = user@example.com</pre>
+</div>
+</div>
+<div class="section" id="email-maxsize">
+<span id="id8"></span><h3>email_maxsize<a class="headerlink" href="#email-maxsize" title="Permalink to this headline">¶</a></h3>
+<p>This setting limits the size of e-mails cronwatch sends. The default value is
+<tt class="docutils literal"><span class="pre">102400</span></tt>. If the entire output should be sent, then <tt class="docutils literal"><span class="pre">email_maxlines</span></tt> should
+be set to <tt class="docutils literal"><span class="pre">-1</span></tt>.</p>
+<p><em>Caution</em>: If you don&#8217;t know the maximum size of the output, it would be better to set a maximum size just in case the output gets really large.</p>
+<p>Examples:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">email_maxsize</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">email_maxsize</span> <span class="o">=</span> <span class="mi">1024</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="email-success">
+<span id="id9"></span><h3>email_success<a class="headerlink" href="#email-success" title="Permalink to this headline">¶</a></h3>
+<p>In the default configuration, cronwatch only sends e-mail when there is an
+error (e.g. the blacklist matches a line of output). This settings tells
+cronwatch to always send e-mail, even if the job was successful.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">email_success</span> <span class="o">=</span> <span class="n">on</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="email-sendmail">
+<span id="id10"></span><h3>email_sendmail<a class="headerlink" href="#email-sendmail" title="Permalink to this headline">¶</a></h3>
+<p>This settings tells cronwatch where to find the sendmail program and what
+parameters to use when calling sendmail. It defaults to <tt class="docutils literal"><span class="pre">/usr/lib/sendmail</span></tt>.</p>
+<p>Examples:</p>
+<div class="highlight-python"><pre>email_sendmail = /usr/local/bin/sendmail
+email_sendmail = /usr/lib/sendmail -t</pre>
+</div>
+</div>
+<div class="section" id="logfile">
+<span id="id11"></span><h3>logfile<a class="headerlink" href="#logfile" title="Permalink to this headline">¶</a></h3>
+<p>This setting makes cronwatch use a log file for the job&#8217;s output. By default,
+it is not set and no logfile is written.</p>
+<p>When determining the log file name, cronwatch uses Python&#8217;s <a class="reference external" href="http://docs.python.org/library/datetime.html#strftime-strptime-behavior">strftime function</a> to
+add date and time information.</p>
+<p>Examples:</p>
+<div class="highlight-python"><pre>logfile = /var/log/cronwatch/job.log
+logfile = /var/log/cronwatch/job-%Y%m%d%h%M.log</pre>
+</div>
+</div>
+</div>
+<div class="section" id="example-configuration-file">
+<h2>Example Configuration File<a class="headerlink" href="#example-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>Here is an example configuration file. See the configuration options above for
+more information.</p>
+<p>Example configuration file:</p>
+<div class="highlight-python"><pre># These defaults are applied when another section doesn't apply
+[_defaults_]
+
+# Send an e-mail to root on the local machine when something messes up
+email_to = root
+
+# Truncate the e-mail if it's bigger than 1M
+email_maxsize = 1048576
+
+# The exit code must either be 0 or 10
+exit_codes = 0, 10
+
+[log_cleanup]
+# Make sure this regular expression is in the output
+required = [0-9]+ log file\(s\) successfully rotated.
+
+# Blacklist any line with error (case-insensitive) in it
+# Also blacklist lines that begin with "Could not ..."
+blacklist = (?i)error, '^Could not open, try again'
+
+logfile = /var/log/log_cleanup-%Y%m%d%h%m.log</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Configuring cronwatch</a><ul>
+<li><a class="reference internal" href="#configuration-file-location">Configuration File Location</a></li>
+<li><a class="reference internal" href="#tags">Tags</a></li>
+<li><a class="reference internal" href="#sections">Sections</a></li>
+<li><a class="reference internal" href="#regular-expressions">Regular Expressions</a></li>
+<li><a class="reference internal" href="#options">Options</a><ul>
+<li><a class="reference internal" href="#required">required</a></li>
+<li><a class="reference internal" href="#blacklist">blacklist</a></li>
+<li><a class="reference internal" href="#whitelist">whitelist</a></li>
+<li><a class="reference internal" href="#exit-codes">exit_codes</a></li>
+<li><a class="reference internal" href="#email-to">email_to</a></li>
+<li><a class="reference internal" href="#email-from">email_from</a></li>
+<li><a class="reference internal" href="#email-maxsize">email_maxsize</a></li>
+<li><a class="reference internal" href="#email-success">email_success</a></li>
+<li><a class="reference internal" href="#email-sendmail">email_sendmail</a></li>
+<li><a class="reference internal" href="#logfile">logfile</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#example-configuration-file">Example Configuration File</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="usage.html"
+                        title="previous chapter">Usage</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/config.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="usage.html" title="Usage"
+             >previous</a> |</li>
+        <li><a href="index.html">cronwatch v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, David Lowry.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+    </div>
+  </body>
+</html>

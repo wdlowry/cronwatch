@@ -1,0 +1,181 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Usage &mdash; cronwatch v1.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="cronwatch v1.0 documentation" href="index.html" />
+    <link rel="next" title="Configuring cronwatch" href="config.html" />
+    <link rel="prev" title="Overview of Need and Features" href="overview.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="config.html" title="Configuring cronwatch"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview of Need and Features"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">cronwatch v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="default-behavior">
+<span id="defaults"></span><h2>Default Behavior<a class="headerlink" href="#default-behavior" title="Permalink to this headline">¶</a></h2>
+<p>In its default configuration, cronwatch simply executes the specified command
+and handles any abnormal exit code or output by mailing it to the current user.
+The <a class="reference internal" href="config.html#config"><em>configuration options</em></a> allow the user to control where that
+output is sent and what is considered &#8220;abnormal.&#8221;</p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>The easiest way to install cronwatch is <a class="reference external" href="http://pypi.python.org/pypi/setuptools">easy_install</a>:</p>
+<div class="highlight-python"><pre>easy_install cronwatch</pre>
+</div>
+<p>You can also download it and install it manually.</p>
+<blockquote>
+<ol class="arabic">
+<li><p class="first">Download <a class="reference external" href="http://pypi.python.org/pypi/configobj/">ConfigObj</a> and install
+it:</p>
+<div class="highlight-python"><pre>wget http://pypi.python.org/packages/source/c/configobj/configobj-4.7.2.tar.gz
+tar xzf configobj-4.7.2.tar.gz
+cd configobj-4.7.2
+python setup.py install</pre>
+</div>
+</li>
+<li><p class="first">Download <a class="reference external" href="http://code.google.com/p/cronwatch/downloads/list">cronwatch</a></p>
+</li>
+<li><p class="first">Unpack it:</p>
+<div class="highlight-python"><pre>tar xzf cronwatch-1.0.tar.gz</pre>
+</div>
+</li>
+<li><p class="first">Install it using setup.py:</p>
+<div class="highlight-python"><pre>cd cronwatch-1.0
+python setup.py install</pre>
+</div>
+</li>
+</ol>
+</blockquote>
+</div>
+<div class="section" id="sample-usage">
+<h2>Sample Usage<a class="headerlink" href="#sample-usage" title="Permalink to this headline">¶</a></h2>
+<p>cronwatch can be run from the command line to test that everything is set up
+correctly:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># cronwatch /bin/true</span>
+</pre></div>
+</div>
+<p>Some errors are severe enough to warrant an immediate error:</p>
+<div class="highlight-python"><pre># cronwatch /bin/truely
+ERROR: could not run /bin/truely: [Errno 2] No such file or directory</pre>
+</div>
+<p>Typically, cronwatch will be executed from a crontab. You&#8217;ll need to make sure
+that you either specify the correct PATH for cronwatch or that you use the full
+path name for cronwatch:</p>
+<div class="highlight-python"><pre>PATH=/usr/local/bin:/usr/bin:/bin
+30 14 * * * cronwatch /bin/echo time for coffee</pre>
+</div>
+<p>You can also specify a configuration file and tags from the command line (these
+concepts will be explained later):</p>
+<div class="highlight-python"><pre>30 14 * * * cronwatch -c /etc/cronwatch/coffee.conf -t coffee /bin/echo time for coffee</pre>
+</div>
+<p>Now that you know how to run cronwatch, look at the
+<a class="reference internal" href="config.html#config"><em>configuration documentation</em></a> to see how to configure cronwatch to
+handle certain output.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Usage</a><ul>
+<li><a class="reference internal" href="#default-behavior">Default Behavior</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#sample-usage">Sample Usage</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Overview of Need and Features</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="config.html"
+                        title="next chapter">Configuring cronwatch</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/usage.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="config.html" title="Configuring cronwatch"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Overview of Need and Features"
+             >previous</a> |</li>
+        <li><a href="index.html">cronwatch v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, David Lowry.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.1.
+    </div>
+  </body>
+</html>
