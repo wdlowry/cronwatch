@@ -4,8 +4,9 @@ cronwatch: Cronjob output handling
 
 About
 =====
-cronwatch is a Python script that executes programs and captures their output
-and exit codes and handles that output as configured. 
+`cronwatch <http://code.google.com/p/cronwatch/>`_ is a Python script that
+executes programs and captures their output and exit codes and handles that
+output as configured. 
 
 Contents
 ========
