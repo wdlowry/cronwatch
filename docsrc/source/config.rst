@@ -9,9 +9,9 @@ Configuration File Location
 ===========================
 By default, cronwatch will check if /etc/cronwatch.conf exists, and if it does,
 use it as the configuration file. If this file does not exist, cronwatch will
-behave essentially as if it were cron (see the defaults below). In this
-scenario, it will handle any output or non-zero exit code as an error and send
-an e-mail to the user that called cronwatch.
+behave essentially as if it were cron (see :ref:`defaults`). In this scenario,
+it will handle any output or non-zero exit code as an error and send an e-mail
+to the user that called cronwatch.
 
 If a file is specified on the command line with the ``-c`` option, then this
 file is used as the configuration file. If this file doesn't exist, cronwatch
@@ -27,7 +27,8 @@ For example, if you are running the following cronwatch command::
     cronwatch /my/very/special/script.sh
 
 then the tag will be ``script.sh``. However, if you supply a tag on the command
-line using the ``-t`` option, then that tag argument will override the tag. For example, in this command line::
+line using the ``-t`` option, then that tag argument will override the default
+tag. For example, in this command line::
 
     cronwatch -t generic /my/very/special/script.sh
 
@@ -64,6 +65,8 @@ details.
 
 One little tidbit: To make a regular expression case insensitive, use the string
 ``(?i)`` somewhere in the regular expressions.
+
+.. _options:
 
 Options
 =======
@@ -192,8 +195,10 @@ be set to ``-1``.
 *Caution*: If you don't know the maximum size of the output, it would be better to set a maximum size just in case the output gets really large.
 
 Examples::
+
     email_maxsize = -1
     email_maxsize = 1024
+
 
 .. _email_success:
 
@@ -215,8 +220,9 @@ This settings tells cronwatch where to find the sendmail program and what
 parameters to use when calling sendmail. It defaults to ``/usr/lib/sendmail``. 
 
 Examples::
-    sendmail = /usr/local/bin/sendmail
-    sendmail = /usr/lib/sendmail -t
+
+    email_sendmail = /usr/local/bin/sendmail
+    email_sendmail = /usr/lib/sendmail -t
 
 .. _logfile:
 
@@ -230,6 +236,7 @@ When determining the log file name, cronwatch uses Python's `strftime function
 add date and time information.
 
 Examples::
+
     logfile = /var/log/cronwatch/job.log
     logfile = /var/log/cronwatch/job-%Y%m%d%h%M.log
 

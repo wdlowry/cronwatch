@@ -8,12 +8,13 @@ Default Behavior
 ================
 In its default configuration, cronwatch simply executes the specified command
 and handles any abnormal exit code or output by mailing it to the current user.
-The configuration options allow the user to control where that output is sent
-and what is considered "abnormal."
+The :ref:`configuration options <config>` allow the user to control where that
+output is sent and what is considered "abnormal."
 
 Installation
 ============
-The easiest way to install cronwatch is easy_install::
+The easiest way to install cronwatch is `easy_install
+<http://pypi.python.org/pypi/setuptools>`_::
 
     easy_install cronwatch
 
