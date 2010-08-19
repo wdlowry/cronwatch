@@ -13,7 +13,8 @@ setup(
     author = 'David Lowry',
     author_email = 'wdlowry@gmail.com',
     url = 'http://code.google.com/p/cronwatch/',
-    download_url = 'http://cronwatch.googlecode.com/files/%s.tar.gz' % VERSION,
+    download_url = 'http://cronwatch.googlecode.com/' + 
+                   'files/cronwatch-%s.tar.gz' % VERSION,
     license = 'GPL',
     classifiers = [ 'Development Status :: 5 - Production/Stable',
                     'Environment :: Console',
