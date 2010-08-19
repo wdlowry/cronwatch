@@ -10,20 +10,20 @@ However, it handles abnormal program runs, output to stderr for example, very
 poorly. cronwatch seeks to fill that gap by capturing and acting upon the
 output and exit codes of jobs executed by cron.
 
-In its default configuration, it acts much like standard cron: it considers any
+In its default configuration, it acts much like standard cron: It considers any
 output or non-zero exit code to be an error and e-mails the owner of the
 crontab. The user can adjust the configuration to handle output differently and
 alert other e-mail addresses. 
 
 Features
 ========
-  * Ensure that certain regular expressions exist in the output to 
+  * Can ensure that certain regular expressions exist in the output to 
     consider a job successful
-  * Determine the success or failure of a job based on whitelists and 
-    blacklists
-  * Handle multiple valid exit codes
-  * Adjust the recipient and sender e-mail addresses
-  * Limit the size of the e-mail to avoid extremely large e-mails for jobs 
+  * Can determines the success or failure of a job based on output whitelists
+    and blacklists
+  * Can handle multiple valid exit codes
+  * Allows the recipient and sender e-mail addresses to be changed
+  * Can limit the size of the e-mail to avoid extremely large e-mails for jobs 
     with lots of output 
-  * Write the output to a log file
+  * Can write the output to a log file
 
