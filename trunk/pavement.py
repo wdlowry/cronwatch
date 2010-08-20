@@ -1,12 +1,11 @@
 from paver.easy import *
 from paver.setuputils import setup, install_distutils_tasks
 
-VERSION = '1.2'
+VERSION = '1.3'
 
 setup(
     name = 'cronwatch',
     version = VERSION,
-    packages = ['cronwatch'],
     description = 'A script that monitors cron job output',
     long_description = 'cronwatch is a Python script that executes programs ' +
                        'and captures their output and exit codes and ' +
