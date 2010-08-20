@@ -1,7 +1,7 @@
 from paver.easy import *
 from paver.setuputils import setup, install_distutils_tasks
 
-VERSION = '1.1'
+VERSION = '1.2'
 
 setup(
     name = 'cronwatch',
@@ -29,7 +29,7 @@ setup(
     platforms = ['Any'],
     scripts = ['scripts/cronwatch'],
     test_suite = 'nose.collector',
-    requires=['configobj'],
+    install_requires=['configobj'],
     zip_safe=False,
 )
 
