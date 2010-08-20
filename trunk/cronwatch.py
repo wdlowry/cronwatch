@@ -30,14 +30,22 @@ import shlex
 from optparse import OptionParser
 from tempfile import TemporaryFile
 from StringIO import StringIO
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from getpass import getuser
 from socket import getfqdn, gethostname
 from datetime import datetime
 
 from configobj import ConfigObj, flatten_errors, get_extra_values
 from validate import Validator, VdtTypeError, VdtValueError, is_list, is_int_list, force_list, ValidateError
+
+
+# This is to fix the name change in Python 2.4 -> 2.5
+import email
+if int(email.__version__[0]) < 4:
+    from email.MIMEText import MIMEText
+    from email.MIMEMultipart import MIMEMultipart
+else:
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
 
 ###############################################################################
 # Global variables
