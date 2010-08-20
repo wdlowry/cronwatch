@@ -1,11 +1,12 @@
 from paver.easy import *
 from paver.setuputils import setup, install_distutils_tasks
 
-VERSION = '1.0'
+VERSION = '1.1'
 
 setup(
     name = 'cronwatch',
     version = VERSION,
+    packages = ['cronwatch'],
     description = 'A script that monitors cron job output',
     long_description = 'cronwatch is a Python script that executes programs ' +
                        'and captures their output and exit codes and ' +
@@ -26,7 +27,7 @@ setup(
                     'Topic :: System :: Systems Administration',
                   ],
     platforms = ['Any'],
-    scripts = ['cronwatch'],
+    scripts = ['scripts/cronwatch'],
     test_suite = 'nose.collector',
     requires=['configobj'],
     zip_safe=False,
@@ -41,6 +42,15 @@ options(
 )
 
 @task
+def build_scripts():
+    '''Create the cronwatch executable'''
+    p = path('scripts')
+    p.rmtree()
+    p.mkdir()
+    path('cronwatch.py').copy(path('scripts') / 'cronwatch')
+    call_task('distutils.command.build_scripts')
+
+@task
 @needs('paver.doctools.html')
 def html():
     '''Build cronwatch's docs and put them in docs/'''
@@ -50,7 +60,8 @@ def html():
     builtdocs.move(destdir)
 
 @task
-@needs('generate_setup', 'minilib', 'html', 'setuptools.command.sdist')
+@needs('generate_setup', 'minilib', 'html', 'build_scripts',
+       'setuptools.command.sdist')
 def sdist():
     '''Overrides sdist to make sure that our setup.py is generated.'''
 
