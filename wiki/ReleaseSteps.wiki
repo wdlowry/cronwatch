@@ -1,0 +1,23 @@
+#summary Steps to create a release
+
+= Steps =
+
+  # Edit pavement.py and change VERSION:
+{{{
+VERSION = '1.4'
+}}}
+  # Edit docsrc/source/conf.py and change version:
+{{{
+version = '1.4'
+}}}
+  # Edit docsrc/source/usage.rst and change the tar file name:
+{{{
+tar xzf cronwatch-1.4.tar.gz
+...
+cd cronwatch-1.4
+}}}
+  # Commit all changes
+{{{
+svn commit
+}}}
+  # 
