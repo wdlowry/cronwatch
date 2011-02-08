@@ -1,7 +1,7 @@
 from paver.easy import *
 from paver.setuputils import setup, install_distutils_tasks
 
-VERSION = '1.4'
+VERSION = '1.5'
 
 setup(
     name = 'cronwatch',
