@@ -20,4 +20,7 @@ cd cronwatch-1.4
 {{{
 svn commit
 }}}
-  # 
+  # Create an SVN tag
+{{{
+svn copy https://cronwatch.googlecode.com/svn/trunk/ https://cronwatch.googlecode.com/svn/tags/1.4
+}}}
