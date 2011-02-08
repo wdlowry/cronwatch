@@ -24,6 +24,10 @@ svn commit
 {{{
 svn copy https://cronwatch.googlecode.com/svn/trunk/ https://cronwatch.googlecode.com/svn/tags/1.4
 }}}
+  # Create the tarball
+{{{
+paver sdist
+}}}
   # Deprecate the old release download
   # Upload and feature the new release tarball
   # Register with pypi
