@@ -1,3 +1,3 @@
 Documentation
 -------------
-See http://code.google.com/p/cronwatch/wiki/Documentation
+See http://cronwatch.googlecode.com/svn/docs/index.html

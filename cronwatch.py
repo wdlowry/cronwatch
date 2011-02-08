@@ -3,7 +3,7 @@
 # vim:ft=python:sw=4:sta:et
 #
 # cronwatch.py - Grab and process output from cron jobs
-# Copyright (C) 2010 David Lowry  < wdlowry at gmail dot com >
+# Copyright (C) 2011 David Lowry  < wdlowry at gmail dot com >
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -395,12 +395,16 @@ def watch(args, config = None, tag = None, force_blacklist = True):
     if config[section]['logfile']:
         logfile.write(text)
     
+        l = None
         for l in outfile:
             logfile.write(l)
-        
-        if l[-1] != '\n':
-            logfile.write('\n')
-        logfile.write('[EOF]\n\n')
+
+        if l is None:
+            logfile.write('  No output\n\n')
+        else:
+            if l[-1] != '\n':
+                logfile.write('\n')
+            logfile.write('[EOF]\n\n')
         
     if maxsize > -1 and len(text) > config[section]['email_maxsize']:
         text = text [:config[section]['email_maxsize']]

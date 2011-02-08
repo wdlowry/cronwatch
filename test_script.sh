@@ -3,7 +3,7 @@
 # vim:ft=sh:sw=4:sta:et
 #
 # test_script.sh - Simple shell program to generate test output
-# Copyright (C) 2010 David Lowry  < wdlowry at gmail dot com >
+# Copyright (C) 2011 David Lowry  < wdlowry at gmail dot com >
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

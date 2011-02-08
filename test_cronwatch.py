@@ -3,7 +3,7 @@
 # vim:ft=python:sw=4:sta:et
 #
 # test_cronwatch.py - Unit tests for cronwatch
-# Copyright (C) 2010 David Lowry  < wdlowry at gmail dot com >
+# Copyright (C) 2011 David Lowry  < wdlowry at gmail dot com >
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -626,7 +626,7 @@ class TestWatch(TestBase):
         self.assertEquals('! line2', self.send_text[13])
 
     def test_logfile(self):
-        '''Should open and write to a log file'''
+        '''Should open and append to a log file'''
         logfile = NamedTemporaryFile()
         logfile.write('line1\n')
         logfile.seek(0)
@@ -650,6 +650,26 @@ class TestWatch(TestBase):
         self.assertEquals('[EOF]', o[11])
         self.assertEquals('', o[12])
         self.assertEquals('', o[13])
+    
+    def test_logfile_empty_output(self):
+        '''Should open and write to a log file even if there is no output'''
+        logfile = NamedTemporaryFile()
+
+        self.watch('logfile = %s\nemail_maxsize = 1' % logfile.name, 'out')
+        o = logfile.read().split('\n')
+
+        self.assertEquals('The following command line executed successfully:',
+                          o[0])
+        self.assertEquals(self.cmd_line, o[1])
+        self.assertEquals('', o[2])
+        self.assertEquals('Started execution at:  time0', o[3])
+        self.assertEquals('Finished execution at: time1', o[4])
+        self.assertEquals('Exit code: 0', o[5])
+        self.assertEquals('', o[6])
+        self.assertEquals('Output:', o[7])
+        self.assertEquals('  No output', o[8])
+        self.assertEquals('', o[9])
+        self.assertEquals('', o[10])
 
     def test_logfile_name(self):
         '''Should format the name of the logfile correctly'''
