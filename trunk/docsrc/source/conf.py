@@ -4,7 +4,7 @@ import sys, os
 
 project = u'cronwatch'
 copyright = u'2011, David Lowry'
-version = '1.4'
+version = '1.5'
 release = version
 
 extensions = []
