@@ -526,7 +526,7 @@ class TestWatch(TestBase):
         self.assertEquals('Exit code: 0', self.send_text[5])
         self.assertEquals('', self.send_text[6])
         self.assertEquals('Output:', self.send_text[7])
-        self.assertEquals('[EOF]', self.send_text[8])
+        self.assertEquals('  No output', self.send_text[8])
 
     def test_email_output(self):
         '''Should append the output to the end of the file'''
@@ -570,7 +570,7 @@ class TestWatch(TestBase):
         self.assertFalse(self.send)
 
         self.watch('exit_codes = 1, 2', 'exit', '3')
-        self.assertEquals('  * Exit code (3) was not a valid exit code', 
+        self.assertEquals('  * Exit code (3) is not a valid exit code', 
                            self.send_text[8])
 
     def test_required(self):

@@ -295,7 +295,7 @@ def watch(args, config = None, tag = None, force_blacklist = True):
 
     # Check for correct error codes
     if exit not in config[section]['exit_codes']:
-        errors.append('Exit code (%i) was not a valid exit code' % exit)
+        errors.append('Exit code (%i) is not a valid exit code' % exit)
 
     if not (config[section]['required'] or
         config[section]['whitelist'] or
@@ -389,19 +389,25 @@ def watch(args, config = None, tag = None, force_blacklist = True):
     text += 'Output:\n'
     
     maxsize = config[section]['email_maxsize']
-    text += outfile.read(maxsize)
+    output = outfile.read(maxsize)
+
+    if len(output) == 0:
+        empty = True
+    else:
+        empty = False
+
+    text += output
 
     # Start the log file
     if config[section]['logfile']:
         logfile.write(text)
     
-        l = None
-        for l in outfile:
-            logfile.write(l)
-
-        if l is None:
+        if empty:
             logfile.write('  No output\n\n')
         else:
+            for l in outfile:
+                logfile.write(l)
+
             if l[-1] != '\n':
                 logfile.write('\n')
             logfile.write('[EOF]\n\n')
@@ -410,9 +416,12 @@ def watch(args, config = None, tag = None, force_blacklist = True):
         text = text [:config[section]['email_maxsize']]
         text += '\n[Output truncated]'
     else:
-        if text[-1] != '\n':
-            text += '\n'
-        text += '[EOF]'
+        if len(output) != 0:
+            if text[-1] != '\n':
+                text += '\n'
+            text += '[EOF]'
+        else:
+            text += '  No output'
 
     if errors or config[section]['email_success']:
         send_mail(sendmail, subject, text, to_addr, from_addr)
