@@ -1,0 +1,7 @@
+#summary List of Contributors
+
+= Introduction =
+* David Lowry
+  * Original author
+* Jonathan Bayer
+  * preamble_text idea and code
