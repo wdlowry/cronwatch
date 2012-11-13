@@ -32,11 +32,11 @@ You can also download it and install it manually.
   #. Download `cronwatch <http://code.google.com/p/cronwatch/downloads/list>`_
   #. Unpack it::
 
-         tar xzf cronwatch-1.5.tar.gz
+         tar xzf cronwatch-1.6.tar.gz
     
   #. Install it using setup.py::
 
-         cd cronwatch-1.5
+         cd cronwatch-1.6
          python setup.py install
 
 Sample Usage
