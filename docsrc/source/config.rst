@@ -85,6 +85,8 @@ cronwatch supports these configuration options:
 | :ref:`whitelist`      | Not set                                             |
 +-----------------------+-----------------------------------------------------+
 | :ref:`exit_codes`     | ``0``                                               |
++-----------------------|-----------------------------------------------------+
+| :ref:`preamble_file`  | Not set                                             |
 +-----------------------+-----------------------------------------------------+
 | :ref:`email_to`       | The username of the current user                    |
 +-----------------------+-----------------------------------------------------+
@@ -159,6 +161,17 @@ acceptable. Other codes will result in an error. The default is `0`.
 Example::
 
     exit_code = 0, 1
+
+.. _preamble_file:
+
+preamble_file
+-------------
+This setting inserts the contents of a text file into the e-mail and log file.
+The contents of this file are put in right before the output of the command.
+
+Example::
+
+    preamble_file = /path/to/text.txt
 
 .. _email_to:
 

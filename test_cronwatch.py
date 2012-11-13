@@ -115,6 +115,19 @@ class TestLineSearch(TestBase):
                                            re.compile('3')], find_all = True)
         self.assertEquals((False, ['t']), r)
 
+class TestIsReadableFile(TestBase):
+    def test_file(self):
+        '''Should return a filename'''
+        self.assertEquals('test_file.txt',
+                cronwatch.is_readable_file('test_file.txt'))
+    
+    def test_no_file(self):
+        '''Should raise a validation error'''
+        self.assertRaisesError(cronwatch.VdtValueMsgError,
+                """could not read file: [Errno 2] No such file or directory: 'not_a_file.txt'""",
+               cronwatch.is_readable_file, 'not_a_file.txt')
+
+
 class TestIsRegex(TestBase):
     def test_not_string(self):
         '''Should raise VdtTypeError if it's not a string'''
@@ -184,6 +197,7 @@ class TestReadConfig(TestBase):
             self.assertEquals(None, c[s]['whitelist'])
             self.assertEquals([], c[s]['blacklist'])
             self.assertEquals([0], c[s]['exit_codes'])
+            self.assertEquals(None, c[s]['preamble_file'])
             self.assertEquals(None, c[s]['email_to'])
             self.assertEquals(None, c[s]['email_from'])
             self.assertEquals(102400, c[s]['email_maxsize'])
@@ -239,6 +253,15 @@ class TestReadConfig(TestBase):
         self.assertEquals([1, 2], c['test']['exit_codes'])
 
         cf = self.config('[test]\nexit_codes = a')
+        self.assertRaises(cronwatch.Error, cronwatch.read_config, cf.name)
+    
+    def test_preamble_file(self):
+        '''Should verify the preamble_file'''
+        cf = self.config('[test1]\npreamble_file = test_file.txt')
+        c = cronwatch.read_config(cf.name)
+        self.assertEquals('test_file.txt', c['test1']['preamble_file'])
+
+        cf = self.config('[test1]\npreamble_file = not_a_file.txt')
         self.assertRaises(cronwatch.Error, cronwatch.read_config, cf.name)
 
     def test_emails(self):
@@ -535,6 +558,15 @@ class TestWatch(TestBase):
         self.assertEquals('  a', self.send_text[8])
         self.assertEquals('  b', self.send_text[9])
         self.assertEquals('[EOF]', self.send_text[10])
+
+    def test_preamble_text(self):
+        '''Should add the pramble to the output'''
+        self.watch('email_success = on\npreamble_file = test_file.txt', 'out', 
+                  'a', 'b')
+        self.assertEquals('', self.send_text[6])
+        self.assertEquals('This is sample text.', self.send_text[7])
+        self.assertEquals('', self.send_text[8])
+        self.assertEquals('Output:', self.send_text[9])
     
     def test_email_maxsize(self):
         '''Should truncate the e-mail output if it's too big'''
@@ -631,7 +663,8 @@ class TestWatch(TestBase):
         logfile.write('line1\n')
         logfile.seek(0)
 
-        self.watch('logfile = %s\nemail_maxsize = 1' % logfile.name, 
+        self.watch(('logfile = %s\nemail_maxsize = 1\n' + 
+                   'preamble_file = test_file.txt') % logfile.name, 
                    'out', 'line1', 'line2')
         o = logfile.read().split('\n')
 
@@ -644,12 +677,14 @@ class TestWatch(TestBase):
         self.assertEquals('Finished execution at: time1', o[5])
         self.assertEquals('Exit code: 0', o[6])
         self.assertEquals('', o[7])
-        self.assertEquals('Output:', o[8])
-        self.assertEquals('  line1', o[9])
-        self.assertEquals('  line2', o[10])
-        self.assertEquals('[EOF]', o[11])
-        self.assertEquals('', o[12])
-        self.assertEquals('', o[13])
+        self.assertEquals('This is sample text.', o[8])
+        self.assertEquals('', o[9])
+        self.assertEquals('Output:', o[10])
+        self.assertEquals('  line1', o[11])
+        self.assertEquals('  line2', o[12])
+        self.assertEquals('[EOF]', o[13])
+        self.assertEquals('', o[14])
+        self.assertEquals('', o[15])
     
     def test_logfile_empty_output(self):
         '''Should open and write to a log file even if there is no output'''

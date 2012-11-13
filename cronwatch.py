@@ -120,6 +120,15 @@ class VdtValueMsgError(VdtValueError):
     def __init__(self, msg):
         ValidateError.__init__(self, msg)
 
+def is_readable_file(value):
+    '''Validator check for a file'''
+    try:
+        open(value)
+    except Exception, e:
+        raise VdtValueMsgError('could not read file: %s' % e)
+
+    return value
+
 def is_regex(value):
     '''Validator check for regular expressions'''
     if not isinstance(value, basestring):
@@ -167,6 +176,7 @@ def read_config(config_file = None):
         whitelist = force_regex_list(default = None)
         blacklist = force_regex_list(default = list())
         exit_codes = force_int_list(default = list(0))
+        preamble_file = is_readable_file(default = None)
         email_to = string(default = None)
         email_from = string(default = None)
         email_maxsize = integer(default = 102400, min = -1)
@@ -194,7 +204,8 @@ def read_config(config_file = None):
         raise Error('could not read %s: %s' % (config_file, e))
 
     # Validate the configuration
-    extra_checks = { 'force_regex_list': force_regex_list,
+    extra_checks = { 'is_readable_file': is_readable_file,
+                     'force_regex_list': force_regex_list,
                      'force_int_list': force_int_list}
     results = config.validate(Validator(extra_checks), preserve_errors = True)
 
@@ -379,6 +390,10 @@ def watch(args, config = None, tag = None, force_blacklist = True):
     text += 'Finished execution at: %s\n' % end_time
     text += 'Exit code: %i\n' % exit
     text += '\n'
+
+    if config[section]['preamble_file']:
+        text += open(config[section]['preamble_file']).read()
+        text += '\n'
 
     if errors:
         text += 'Errors:\n'
